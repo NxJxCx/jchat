@@ -11,7 +11,19 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 const router = _express.default.Router();
 
-/* GET all users */
-router.get('/', userController.getAllUsers);
+/* login user */
+router.post('/login', userController.loginUser);
+
+/* signup user */
+router.post('/', userController.signupUser);
+
+/* GET user by query */
+router.get('/', userController.getUserByQuery);
+
+/* update user */
+router.put('/:userid', userController.updateUser);
+
+/* verify user password */
+router.post('/:userid/verifypassword', userController.verifyPassword);
 var _default = router;
 exports.default = _default;

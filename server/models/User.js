@@ -1,8 +1,57 @@
 import { Schema, model } from 'mongoose';
 
 const UserSchema = new Schema({
-  name: {
-    type: String
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  password: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  firstname: {
+    type: String,
+    required: true,
+  },
+  middlename: {
+    type: String,
+    default: '',
+  },
+  lastname: {
+    type: String,
+    required: true,
+  },
+  birthday: {
+    type: Date,
+    required: true,
+  },
+  gender: {
+    type: String,
+    required: true,
+    default: 'Male'
+  },
+  civilstatus: {
+    type: String,
+    required: true,
+    default: 'Single'
+  },
+  address: {
+    type: String,
+    default: '',
+  },
+  aboutme: {
+    type: String,
+    default: '',
+  },
+  photo: {
+    type: String,
+    required: true,
   }
 });
 
