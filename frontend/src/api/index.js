@@ -2,7 +2,7 @@ import axios from 'axios'
 
 export const loginUser = (username, password) => axios.post('/api/users/login', { username, password })
 
-export const signupUser = (username, password, email, firstname, middlename, lastname, birthday, gender, civilstatus, address, aboutme, photo) => axios.post('/api/users')
+export const signupUser = (username, password, email, firstname, middlename, lastname, birthday, gender, civilstatus, address, aboutme, photo) => axios.post('/api/users', { username, password, email, firstname, middlename, lastname, birthday, gender, civilstatus, address, aboutme, photo })
 
 export const isUserExists = (username) => axios.get(`/api/users?query=exists&username=${username}`)
 
