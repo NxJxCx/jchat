@@ -70,41 +70,22 @@
   height: 1.5em;
   margin-right: 0.5em;
   transform: translateY(25%);
-  background-image: url('username.svg');
   background-repeat: no-repeat;
   background-size: contain;
 }
 
-.login-form .checkbox-group {
-  display: inline-block;
-  color: #ffffffc8;
-  margin-bottom: 2em;
+.login-form label.username span {
+  background-image: url('username.svg');
 }
 
-.login-form .checkbox-group input[type="checkbox"] {
-  width: 1.1em;
-  height: 1.1em;
-  cursor: pointer;
-  background: rgba(40,40,40,0.2);
-  color:black;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  border: 1px solid #ffffffa8;
-  border-radius: 5px;
-  margin-bottom: 0;
-  margin-right: 0.5em;
-  transform: translateY(15%);
-}
-
-.login-form .checkbox-group input[type="checkbox"]:checked {
-  background-image: url('check.svg');
+.login-form label.password span {
+  background-image: url('password.svg');
 }
 
 .login-form button.login-button {
   width: 100%;
-  height: 3em;
-  background-image: linear-gradient(rgb(200, 70, 70), rgb(180, 50, 50), rgb(150, 25, 25));
+  height: 3.5em;
+  background-image: linear-gradient(rgb(225, 100, 100), rgb(225, 75, 75), rgb(220, 50, 50));
   border: none;
   border-radius: 10em;
   color: #d8d8d8ff;

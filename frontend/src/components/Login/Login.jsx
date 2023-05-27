@@ -1,5 +1,6 @@
 import { Form } from 'react-router-dom'
 import './Login.css'
+import Checkbox from '../Checkbox/Checkbox'
 
 export default function Login() {
   return (
@@ -17,7 +18,7 @@ export default function Login() {
               <span></span>
               <input type="password" name="password" placeholder="Password" required/>
             </label>
-            <div className="checkbox-group" type="button" onClick={(e)=>{const children = [...e.target.children]; if (children.length > 0) children[0].checked = !children[0].checked;}}><input type="checkbox" name="rememberme" /> Remember me</div>
+            <Checkbox name="rememberme" label="Remember me" />
             <button className="login-button">Log in</button>
           </div>
           <div className="register-content">

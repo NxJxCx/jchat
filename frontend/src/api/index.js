@@ -17,9 +17,9 @@ export const uploadImage = (userid, file, what="profile", { onUploadProgress, on
 
     return axios.post('/api/uploadphoto', data, {
         headers: {
-            ['accept']: 'application/json',
-            ['Accept-Language']: 'en-US,en;q=0.8',
-            ['Content-Type']: `multipart/form-data; boundary=${data._boundary}`,
+            accept: 'application/json',
+            'Accept-Language': 'en-US,en;q=0.8',
+            'Content-Type': `multipart/form-data; boundary=${data._boundary}`,
         },
         onUploadProgress,
         onUploadComplete
