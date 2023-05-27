@@ -10,7 +10,7 @@
 }
 
 .login-box {
-  width: 30em;
+  width: 25em;
   height: 35em;
   background-color: rgba(15,15,15,0.7);
   display: flex;
@@ -33,7 +33,7 @@
   margin: 2em auto;
   flex-wrap: nowrap;
   width: 100%;
-  padding: 0 4em;
+  padding: 0 3em;
 }
 
 .login-form input {
