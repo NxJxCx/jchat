@@ -75,22 +75,27 @@ const router = createBrowserRouter([
     path: '/testupload',
     element: <TestUpload />,
     action: async ({request}) => {
-      const formData = new FormData(document.querySelector('form'))
+      const progressbar = document.querySelector('progress#file')
+      progressbar.value = 0
+      progressbar.innerHTML = " 0% "
+      progressbar.classList.remove('d-none')
+      const formData = await request.formData()
       try {
         const response = await uploadImage({
           formData,
           forProfile: formData.get('forProfile') === 'profile',
           onUploadProgress: (e) => {
-            const percent = Math.floor(Math.max(0, Math.min(100, e.progress / e.total)))
-            console.log(percent, "%")
-          },
+            progressbar.max = e.total
+            progressbar.value = e.loaded
+            progressbar.innerHTML = ` ${Math.floor(e.progress * 100)}% `
+          }
         })
         const result = response.data;
         if (result.success) {
           Swal.fire({
             icon: 'success',
             title: 'Success',
-            text: 'Successfully Uploaded!',
+            text: result.success,
             timer: 1000,
           }).then(() => {
             redirect('/')
@@ -99,11 +104,12 @@ const router = createBrowserRouter([
           Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'Failed to upload file!',
+            text: result.error,
             timer: 1000,
           })
         }
       } catch (error) {
+        console.log(error)
         Swal.fire({
           icon: 'error',
           title: 'Error',

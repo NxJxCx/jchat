@@ -43,9 +43,7 @@ app.use((0, _expressFileupload.default)({
     fileSize: 20 * 1024 * 1024
   },
   // limit to 20MB
-  useTempFiles: true,
-  // use temporary file storage instead of memory RAM
-  tempFileDir: '/workspaces/jchat/tmp/' // path to temporary folder
+  useTempFiles: true // use temporary file storage instead of memory RAM
 }));
 
 app.use(_express.default.static(_path.default.join(__dirname, "..", "frontend", "build")));
