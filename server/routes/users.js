@@ -16,6 +16,9 @@ router.get('/', userController.getUserByQuery)
 /* update user */
 router.put('/:userid', userController.updateUser)
 
+/* update user password */
+router.put('/:userid/newpassword', userController.updateUserPassword)
+
 /* verify user password */
 router.post('/:userid/verifypassword', userController.verifyPassword)
 

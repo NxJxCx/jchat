@@ -2,6 +2,7 @@
 
 var _path = _interopRequireDefault(require("path"));
 var _express = _interopRequireDefault(require("express"));
+var _expressFileupload = _interopRequireDefault(require("express-fileupload"));
 var _compression = _interopRequireDefault(require("compression"));
 var _cookieParser = _interopRequireDefault(require("cookie-parser"));
 var _cors = _interopRequireDefault(require("cors"));
@@ -29,6 +30,16 @@ _mongoose.default.connect(mongoUri, mongooseConfigs).then(conn => {
   process.exit(1);
 });
 app.use((0, _morgan.default)('dev'));
+app.use((0, _expressFileupload.default)({
+  limits: {
+    fileSize: 20 * 1024 * 1024
+  },
+  // limit to 20MB
+  useTempFiles: true,
+  // use temporary file storage instead of memory RAM
+  tempFileDir: './tmp' // path to temporary folder
+}));
+
 app.use(_express.default.json());
 app.use(_express.default.urlencoded({
   extended: false

@@ -1,9 +1,10 @@
-import { RouterProvider, createBrowserRouter, redirect } from 'react-router-dom'
+import { RouterProvider, createBrowserRouter, redirect, json } from 'react-router-dom'
 import Swal from 'sweetalert2'
 import Login from './components/Login/Login'
 import Signup from './components/Signup/Signup'
 import Chat from './components/Chat/Chat'
-import { loginUser } from './api'
+import { loginUser, uploadImage } from './api'
+import TestUpload from './components/TestUpload'
 
 const router = createBrowserRouter([
   {
@@ -70,6 +71,24 @@ const router = createBrowserRouter([
       return !logininfo ? redirect('/login') : { logininfo: JSON.parse(logininfo) }
     }
   },
+  {
+    path: '/testupload',
+    element: <TestUpload />,
+    action: async ({ request }) => {
+      const formData = await request.formData()
+      const response = await uploadImage({
+        formData,
+        onUploadProgress: (e) => {
+          console.log("upload in progress", e)
+        },
+        onUploadComplete: (e) => {
+          console.log("upload complete!", e)
+        }
+      })
+      console.log("RESPONSE:", response)
+      return json(response)
+    }
+  }
 ])
 
 export default function App() {

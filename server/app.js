@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import path from 'path'
 import express from 'express'
+import fileUpload from 'express-fileupload'
 import compression from 'compression'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
@@ -22,6 +23,11 @@ mongoose.connect(mongoUri, mongooseConfigs).then((conn) => {
 })
 
 app.use(logger('dev'))
+app.use(fileUpload({
+  limits: { fileSize: 20 * 1024 * 1024 }, // limit to 20MB
+  useTempFiles : true, // use temporary file storage instead of memory RAM
+  tempFileDir : './tmp' // path to temporary folder
+}))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
