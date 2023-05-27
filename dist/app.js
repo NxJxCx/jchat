@@ -30,16 +30,6 @@ _mongoose.default.connect(mongoUri, mongooseConfigs).then(conn => {
   process.exit(1);
 });
 app.use((0, _morgan.default)('dev'));
-app.use((0, _expressFileupload.default)({
-  limits: {
-    fileSize: 20 * 1024 * 1024
-  },
-  // limit to 20MB
-  useTempFiles: true,
-  // use temporary file storage instead of memory RAM
-  tempFileDir: './tmp' // path to temporary folder
-}));
-
 app.use(_express.default.json());
 app.use(_express.default.urlencoded({
   extended: false
@@ -48,8 +38,19 @@ app.use((0, _cookieParser.default)());
 app.use((0, _helmet.default)());
 app.use((0, _cors.default)());
 app.use((0, _compression.default)());
+app.use((0, _expressFileupload.default)({
+  limits: {
+    fileSize: 20 * 1024 * 1024
+  },
+  // limit to 20MB
+  useTempFiles: true,
+  // use temporary file storage instead of memory RAM
+  tempFileDir: '/workspaces/jchat/tmp/' // path to temporary folder
+}));
+
 app.use(_express.default.static(_path.default.join(__dirname, "..", "frontend", "build")));
 app.use('/api/users', routes.users);
+app.use('/api/uploadphoto', routes.uploadphoto);
 app.get("*", (req, res, next) => {
   res.sendFile(_path.default.join(__dirname, "..", "frontend", "build", "index.html"));
 });

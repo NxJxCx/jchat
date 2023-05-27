@@ -74,10 +74,16 @@ const router = createBrowserRouter([
   {
     path: '/testupload',
     element: <TestUpload />,
-    action: async ({ request }) => {
+    action: async (all) => {
+      const request = all.request
+      console.log(all)
       const formData = await request.formData()
+      const { userid, what } = Object.fromEntries(formData)
+      const imagefile = document.querySelector('#photofile');
       const response = await uploadImage({
-        formData,
+        userid,
+        forProfile: what === 'profile',
+        file: imagefile.files[0],
         onUploadProgress: (e) => {
           console.log("upload in progress", e)
         },
@@ -85,8 +91,7 @@ const router = createBrowserRouter([
           console.log("upload complete!", e)
         }
       })
-      console.log("RESPONSE:", response)
-      return json(response)
+      return response
     }
   }
 ])

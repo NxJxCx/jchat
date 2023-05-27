@@ -23,21 +23,22 @@ mongoose.connect(mongoUri, mongooseConfigs).then((conn) => {
 })
 
 app.use(logger('dev'))
-app.use(fileUpload({
-  limits: { fileSize: 20 * 1024 * 1024 }, // limit to 20MB
-  useTempFiles : true, // use temporary file storage instead of memory RAM
-  tempFileDir : './tmp' // path to temporary folder
-}))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 app.use(helmet())
 app.use(cors())
 app.use(compression())
+app.use(fileUpload({
+  limits: { fileSize: 20 * 1024 * 1024 }, // limit to 20MB
+  useTempFiles : true, // use temporary file storage instead of memory RAM
+  tempFileDir : '/workspaces/jchat/tmp/' // path to temporary folder
+}))
 
 app.use(express.static(path.join(__dirname, "..", "frontend", "build")))
 
 app.use('/api/users', routes.users)
+app.use('/api/uploadphoto', routes.uploadphoto)
 
 app.get("*", (req, res, next) => {
   res.sendFile(path.join(__dirname, "..", "frontend", "build", "index.html"))

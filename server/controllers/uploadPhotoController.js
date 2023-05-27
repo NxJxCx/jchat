@@ -2,8 +2,8 @@ import path from 'path'
 import fs from 'fs'
 
 export const uploadPhoto = async (req, res, next) => {
-  const { userid, file, forProfile } = req.files
-  console.log("FILES", req.files)
+  const files = req.files
+  console.log("FILES", files)
   console.log("BODY", req.body)
   // if (!(userid && file && type(forProfile) === 'boolean')) {
   //   return res.status(403).json('Invalid Request!')
@@ -20,5 +20,5 @@ export const uploadPhoto = async (req, res, next) => {
   // } else {
 
   // }
-  res.json({file})
+  res.json({files})
 }
