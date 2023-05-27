@@ -22,7 +22,7 @@ const mongooseConfigs = {
   useUnifiedTopology: true
 };
 _mongoose.default.connect(mongoUri, mongooseConfigs).then(conn => {
-  console.log("Connected to MongoDB database", conn);
+  console.log("Connected to MongoDB database", `${conn.connections[0].host}/${conn.connections[0].name}`);
 }).catch(err => {
   console.log(err);
   console.log("Failed to connect to MongoDB database");
