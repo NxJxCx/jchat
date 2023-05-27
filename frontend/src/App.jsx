@@ -74,24 +74,44 @@ const router = createBrowserRouter([
   {
     path: '/testupload',
     element: <TestUpload />,
-    action: async (all) => {
-      const request = all.request
-      console.log(all)
-      const formData = await request.formData()
-      const { userid, what } = Object.fromEntries(formData)
-      const imagefile = document.querySelector('#photofile');
-      const response = await uploadImage({
-        userid,
-        forProfile: what === 'profile',
-        file: imagefile.files[0],
-        onUploadProgress: (e) => {
-          console.log("upload in progress", e)
-        },
-        onUploadComplete: (e) => {
-          console.log("upload complete!", e)
+    action: async ({request}) => {
+      const formData = new FormData(document.querySelector('form'))
+      try {
+        const response = await uploadImage({
+          formData,
+          forProfile: formData.get('forProfile') === 'profile',
+          onUploadProgress: (e) => {
+            const percent = Math.floor(Math.max(0, Math.min(100, e.progress / e.total)))
+            console.log(percent, "%")
+          },
+        })
+        const result = response.data;
+        if (result.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'Successfully Uploaded!',
+            timer: 1000,
+          }).then(() => {
+            redirect('/')
+          })
+        } else if (result.error) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to upload file!',
+            timer: 1000,
+          })
         }
-      })
-      return response
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to upload file!',
+          footer: `<strong class="text-danger">${error.message}</strong>`
+        })
+      }
+      return {}
     }
   }
 ])

@@ -20,22 +20,21 @@ export const getChatData = (from_userid, to_username) => axios.get(`/api/chat?qu
 
 export const sendChatMessage = (from_userid, to_username, message, type='text') => axios.post(`/api/chat`, { from_userid, to_username, message, type })
 
-export const uploadImage = ({ formData, userid, file, forProfile=false, onUploadProgress, onUploadComplete }) => {
+export const uploadImage = ({ formData, userid, file, forProfile=false, onUploadProgress }) => {
     const data = formData ? formData : new FormData()
     if (!formData) {
         data.append('userid', userid)
-        data.append('file', file)
-        data.append('forProfile', forProfile)
-        console.log("files appended", data)
+        data.append('photo', file)
+        data.append('forProfile', !!forProfile)
+    } else {
+        data.delete('forProfile')
+        data.append('forProfile', !!forProfile)
     }
 
     return axios.post('/api/uploadphoto', data, {
         headers: {
-            'accept': 'application/json',
-            'Accept-Language': 'en-US,en;q=0.8',
-            'Content-Type': `multipart/form-data; boundary=${data._boundary}`,
+            "Content-Type": "multipart/form-data",
         },
-        onUploadProgress,
-        onUploadComplete
+        onUploadProgress
     })
 }
