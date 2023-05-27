@@ -32,7 +32,6 @@ app.use(compression())
 app.use(fileUpload({
   limits: { fileSize: 20 * 1024 * 1024 }, // limit to 20MB
   useTempFiles : true, // use temporary file storage instead of memory RAM
-  tempFileDir : '/workspaces/jchat/tmp/' // path to temporary folder
 }))
 
 app.use(express.static(path.join(__dirname, "..", "frontend", "build")))
