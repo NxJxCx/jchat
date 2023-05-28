@@ -95,7 +95,7 @@ const router = createBrowserRouter([
           Swal.fire({
             icon: 'success',
             title: 'Success',
-            text: result.success,
+            text: result.success.message,
             timer: 1000,
           }).then(() => {
             redirect('/')
@@ -104,7 +104,7 @@ const router = createBrowserRouter([
           Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: result.error,
+            text: result.error.message,
             timer: 1000,
           })
         }

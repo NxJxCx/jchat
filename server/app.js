@@ -29,12 +29,15 @@ app.use(cookieParser())
 app.use(helmet())
 app.use(cors())
 app.use(compression())
+
 app.use(fileUpload({
+  safeFileNames: true,
   limits: { fileSize: 20 * 1024 * 1024 }, // limit to 20MB
   useTempFiles : true, // use temporary file storage instead of memory RAM
 }))
 
 app.use(express.static(path.join(__dirname, "..", "frontend", "build")))
+app.use(express.static(path.join(__dirname, "..", "public")))
 
 app.use('/api/users', routes.users)
 app.use('/api/uploadphoto', routes.uploadphoto)
@@ -43,8 +46,10 @@ app.get("*", (req, res, next) => {
   res.sendFile(path.join(__dirname, "..", "frontend", "build", "index.html"))
 })
 
+// handle errors
 app.use((err, req, res, next) => {
   console.log(err)
   res.status(err.status).json({error: err})
 })
+
 module.exports = app;

@@ -39,6 +39,7 @@ app.use((0, _helmet.default)());
 app.use((0, _cors.default)());
 app.use((0, _compression.default)());
 app.use((0, _expressFileupload.default)({
+  safeFileNames: true,
   limits: {
     fileSize: 20 * 1024 * 1024
   },
@@ -47,11 +48,14 @@ app.use((0, _expressFileupload.default)({
 }));
 
 app.use(_express.default.static(_path.default.join(__dirname, "..", "frontend", "build")));
+app.use(_express.default.static(_path.default.join(__dirname, "..", "public")));
 app.use('/api/users', routes.users);
 app.use('/api/uploadphoto', routes.uploadphoto);
 app.get("*", (req, res, next) => {
   res.sendFile(_path.default.join(__dirname, "..", "frontend", "build", "index.html"));
 });
+
+// handle errors
 app.use((err, req, res, next) => {
   console.log(err);
   res.status(err.status).json({
