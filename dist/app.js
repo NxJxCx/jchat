@@ -39,7 +39,6 @@ app.use((0, _helmet.default)());
 app.use((0, _cors.default)());
 app.use((0, _compression.default)());
 app.use((0, _expressFileupload.default)({
-  safeFileNames: true,
   limits: {
     fileSize: 20 * 1024 * 1024
   },

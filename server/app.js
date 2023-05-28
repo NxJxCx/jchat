@@ -31,7 +31,6 @@ app.use(cors())
 app.use(compression())
 
 app.use(fileUpload({
-  safeFileNames: true,
   limits: { fileSize: 20 * 1024 * 1024 }, // limit to 20MB
   useTempFiles : true, // use temporary file storage instead of memory RAM
 }))

@@ -5,6 +5,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.uploadPhoto = void 0;
 var _path = _interopRequireDefault(require("path"));
+var _fs = require("fs");
+var _promises = require("fs/promises");
 var _models = require("../models");
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 const mimeTypes = {
@@ -39,12 +41,16 @@ const uploadPhoto = async (req, res, next) => {
         }
       });
     }
+    console.log(photo);
     const files = [];
+    console.log("IS FOR PROOFILE?", isForProfile);
     if (isForProfile) {
       // for profile photo
       const filetoupload = Array.isArray(photo) && photo.length > 1 ? photo[0] : photo;
       const randomFilename = filetoupload.md5 + mimeTypes[filetoupload.mimetype];
       const publicPath = `profile-photo/${userid}/${randomFilename}`;
+      const dir = (0, _fs.existsSync)(_path.default.join(__dirname, "..", "..", "public", 'profile-photo', userid));
+      console.log(dir);
       const savePath = _path.default.join(__dirname, "..", "..", "public", 'profile-photo', userid, randomFilename);
       const result = await filetoupload.mv(savePath);
       files.append({
@@ -76,7 +82,7 @@ const uploadPhoto = async (req, res, next) => {
         const randomFilename = photo.md5 + mimeTypes[photo.mimetype];
         const publicPath = `chat-photo/${userid}/${randomFilename}`;
         const savePath = _path.default.join(__dirname, "..", "..", "public", 'chat-photo', userid, randomFilename);
-        const result = await photo.mv(savePath);
+        const result = await filetoupload.mv(savePath);
         files.append({
           filename: publicPath,
           mimetype: photo.mimetype,
