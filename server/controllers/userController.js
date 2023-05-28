@@ -1,20 +1,36 @@
 import { User } from '../models'
 import { hash, compare } from 'bcryptjs'
 
-export const updateOnlineStatus = async (req, res, next) => {
-  const { userid } = req.body ? req.body : {}
-  if (!userid) {
-    return res.status(403).json('Invalid Request!')
+
+export const signupUser = async (req, res, next) => {
+  const { _id,
+    username, password,
+    firstname, middlename, lastname,
+    birthday, gender, civilstatus,
+    address, aboutme, photo
+  } = req.body ? req.body : {}
+  if (!(username && password && firstname && lastname
+      && birthday && gender && civilstatus && photo)) {
+    return res.status(403).json({ error: { status: 403, statusCode: 403, message: 'Invalid Request!' }})
   }
-  try {
-    const dateonline = new Date(Date.now())
-    const doc = await User.findByIdAndUpdate(userid, { $set: { dateonline }})
-    if (!doc) {
-      return res.json({ error: { status: 500, statusCode: 500, message: 'Failed to update Online Status' }})
+  const mybirthday = new Date(Date.parse(birthday))
+  try { 
+    const password_hash = await hash(password, 12)
+    const userModel = new User({ _id: _id ? _id.trim() : undefined,
+      username: username.trim(), password: password_hash,
+      firstname: firstname.trim()[0].toUpperCase() + firstname.trim().substring(1).toLowerCase(), middlename: middlename ? middlename.trim()[0].toUpperCase() + middlename.trim().substring(1).toLowerCase() : undefined, lastname: lastname.trim()[0].toUpperCase() + lastname.trim().substring(1).toLowerCase(),
+      birthday: mybirthday, gender: gender.trim()[0].toLowerCase() === 'f' ? 'Female' : 'Male', civilstatus: civilstatus.trim()[0].toUpperCase() + civilstatus.trim().substring(1).toLowerCase(),
+      address, aboutme, photo: photo.trim()
+    })
+    const result = await userModel.save()
+    if (result) {
+      res.json({ success: { userid: result._id, message: 'Successfully Registered!'}})
+    } else {
+      res.json({ error: { status: 500, statusCode: 500, message: 'Failed to register user!' }})
     }
-    res.json({ success: { message: 'Online Status Updated to ' + dateonline.getTime() }})
   } catch (error) {
-    next(error)
+    console.log(error)
+    next({ status: 500, statusCode: 500, message: 'Failed to register user!' })
   }
 }
 
@@ -41,37 +57,6 @@ export const loginUser = async (req, res, next) => {
   }
 }
 
-export const signupUser = async (req, res, next) => {
-  const {
-    username, password,
-    firstname, middlename, lastname,
-    birthday, gender, civilstatus,
-    address, aboutme, photo
-  } = req.body ? req.body : {}
-  if (!(username && password && firstname && lastname
-      && birthday && gender && civilstatus && photo)) {
-    return res.status(403).json({ error: { status: 403, statusCode: 403, message: 'Invalid Request!' }})
-  }
-  try { 
-    const password_hash = await hash(password, 12)
-    const userModel = new User({
-      username, password: password_hash,
-      firstname, middlename, lastname,
-      birthday, gender, civilstatus,
-      address, aboutme, photo
-    })
-    const result = await userModel.save()
-    console.log(result)
-    if (result) {
-      res.json({ success: { userid: result._id, message: 'Successfully Registered!'}})
-    } else {
-      res.json({ error: { status: 500, statusCode: 500, message: 'Failed to register user!' }})
-    }
-  } catch (error) {
-    next(error)
-  }
-}
-
 export const getUserByQuery = async (req, res, next) => {
   const { query, username, search } = req.query ? req.query : {}
   try {
@@ -89,23 +74,27 @@ export const getUserByQuery = async (req, res, next) => {
         }
       }
       case 'search': {
-        const searchParams = {
-          username: { $regex: search, $options: 'i' },
-          firstname: { $regex: search, $options: 'i'},
-          middlename: { $regex: search, $options: 'i' },
-          lastname: { $regex: search, $options: 'i' },
-        }
-        const result = await User.find(searchParams).select({ _id: 0, username: 1, firstname: 1, middlename: 1, lastname: 1, gender: 1, civilstatus: 1, photo: 1 })
-        if (result) {
-          return res.json([...result])
+        if (typeof(search) === 'string' && search.trim() !== '') {
+          const searchTrimmed = search.trim()
+          const results = await Promise.all([await User.find({ username: { $regex: searchTrimmed, $options: 'i' } }).select({ _id: 0, username: 1, firstname: 1, middlename: 1, lastname: 1, gender: 1, civilstatus: 1, photo: 1}), await User.find({ firstname: { $regex: searchTrimmed, $options: 'i' } }).select({ _id: 0, username: 1, firstname: 1, middlename: 1, lastname: 1, gender: 1, civilstatus: 1, photo: 1}), await User.find({ middlename: { $regex: searchTrimmed, $options: 'i' } }).select({ _id: 0, username: 1, firstname: 1, middlename: 1, lastname: 1, gender: 1, civilstatus: 1, photo: 1}), await User.find({ lastname: { $regex: searchTrimmed, $options: 'i' } }).select({ _id: 0, username: 1, firstname: 1, middlename: 1, lastname: 1, gender: 1, civilstatus: 1, photo: 1})])
+          const result = []
+          results.flat().forEach(v => {
+            if (!result.includes(v)) {
+              result.push(v)
+            }
+          }, [])
+          return res.json(result)
         } else {
-          return res.json([])
+          return res.status(500).json({ error: 'Invalid Request!'})
         }
       }
       case 'profile': {
+        if (!username) {
+          return res.status(403).json('Invalid Request!')
+        }
         const result = await User.findOne({ username }).select({ _id: 0, username: 1, firstname: 1, middlename: 1, lastname: 1, birthday: 1, gender: 1, civilstatus: 1, address: 1, aboutme: 1, photo: 1 })
         if (result) {
-          return res.json({...result})
+          return res.json(result)
         } else {
           return res.json(null)
         }
@@ -121,21 +110,28 @@ export const getUserByQuery = async (req, res, next) => {
 export const updateUser = async (req, res, next) => {
   const userid = req.params ? req.params.userid : null
   if (!userid) {
-    return req.status(403).json('Invalid Request!')
+    return res.status(403).json('Invalid Request!')
   }
   const { firstname, middlename, lastname, birthday, gender, civilstatus, address, aboutme, photo } = req.body ? req.body : {}
-  if (!(firstname && lastname && birthday && gender && civilstatus && photo)) {
-    return req.status(403).json('Invalid Request!')
+  if (!(firstname || middlename || lastname || birthday || gender || civilstatus || address || aboutme || photo)) {
+    return res.status(403).json('Invalid Request!')
   }
+  const mybirthday = birthday ? new Date(Date.parse(birthday)) : undefined
   try {
     const doc = await User.findById(userid)
     if (doc) {
-      [['firstname', firstname], ['middlename', middlename], ['lastname', lastname], ['birthday', birthday], ['gender', gender], ['civilstatus', civilstatus], ['address', address], ['aboutme', aboutme], ['photo', photo]].map(([key, value], i) => {
-        doc[key] = value
+      [['firstname', firstname ? firstname.trim()[0].toUpperCase() + firstname.trim().substring(1).toLowerCase() : undefined], ['middlename', middlename ? middlename.trim()[0].toUpperCase() + middlename.trim().substring(1).toLowerCase() : undefined], ['lastname', lastname ? lastname.trim()[0].toUpperCase() + lastname.trim().substring(1).toLowerCase() : undefined], ['birthday', mybirthday], ['gender', gender ? gender.trim()[0].toLowerCase() === 'f' ? 'Female' : 'Male' : undefined], ['civilstatus', civilstatus ? civilstatus.trim()[0].toUpperCase() + civilstatus.trim().substring(1).toLowerCase() : undefined], ['address', address], ['aboutme', aboutme], ['photo', photo ? photo.trim() : undefined]].map(([key, value], i) => {
+        if (value) {
+          doc[key] = value
+        }
         return true
       })
       const result = await doc.save()
-      res.json({ success: { userid: result._id, message: 'Successfully Updated!' }})
+      if (result) {
+        res.json({ success: { userid: result._id, message: 'Successfully Updated!' }})
+      } else {
+        res.json({ error: { status: 500, statusCode: 500, message: 'Failed to Update user!' }})
+      }
     } else {
       res.status(500).json({ error: { message: 'No user found to update!'}})
     }
@@ -147,20 +143,20 @@ export const updateUser = async (req, res, next) => {
 export const updateUserPassword = async (req, res, next) => {
   const userid = req.params ? req.params.userid : null
   if (!userid) {
-    return req.status(403).json('Invalid Request!')
+    return res.status(403).json('Invalid Request!')
   }
   const { oldpassword, newpassword } = req.body ? req.body : {}
   if (!(oldpassword && newpassword)) {
-    return req.status(403).json('Invalid Request!')
+    return res.status(403).json('Invalid Request!')
   }
   try {
-    const doc = await User.findById(userid)
+    const doc = await User.findById(userid).select('password')
     if (!doc) {
-      return req.status(404).json('No Such User!')
+      return res.status(404).json('No Such User!')
     }
-    const verified = await compare(oldpassword, doc.password)
-    if (verified) {
-      const password = hash(newpassword, 12)
+    const isValid = await compare(oldpassword, doc.password)
+    if (isValid) {
+      const password = await hash(newpassword, 12)
       doc.password = password
       const result = await doc.save()
       if (result) {
@@ -179,20 +175,68 @@ export const updateUserPassword = async (req, res, next) => {
 export const verifyPassword = async (req, res, next) => {
   const userid = req.params ? req.params.userid : null
   if (!userid) {
-    return req.status(403).json('Invalid Request!')
+    return res.status(403).json('Invalid Request!')
   }
   const { password } = req.body ? req.body : {}
   if (!password) {
-    return req.status(403).json('Invalid Request!')
+    return res.status(403).json('Invalid Request!')
   }
   try {
     const doc = await User.findById(userid)
     if (!doc) {
-      return req.status(404).json('No Such User!')
+      return res.status(404).json('No Such User!')
     }
     const result = await compare(password, doc.password)
     res.json(result)
   } catch (error) {
     next(error)
+  }
+}
+
+
+export const updateOnlineStatus = async (req, res, next) => {
+  const userid = req.params ? req.params.userid : null
+  try {
+    const doc = await User.findById(userid)
+    if (!doc) {
+      return res.status(404).json({ error: { status: 404, statusCode: 404, message: 'Invalid Request' }})
+    }
+    const dateonline = new Date(Date.now())
+    doc.dateonline = dateonline
+    const result = await doc.save()
+    if (result) {
+      res.json({ success: { message: 'Online Status Updated to ' + dateonline.getTime() }})
+    } else {
+      res.status(500).json({ error: { status: 500, statusCode: 500, message: 'Error updating online status'}})
+    }
+  } catch (error) {
+    next(error)
+  }
+}
+
+
+export const deleteUserAccount = async (req, res, next) => {
+  const userid = req.params ? req.params.userid : null
+  const { password } = req.body
+  if (!(userid && password)) {
+    return res.status(403).json('Invalid Request!')
+  }
+  try {
+    const doc = await User.findById(userid).select('username password firstname middlename lastname')
+    if (!doc) {
+      return res.status(403).json('Invalid Request!')
+    }
+    const password_hash = doc.password
+    const isValid = await compare(password, password_hash)
+    if (!isValid) {
+      return res.status(403).json('Invalid Password!')
+    }
+    const result = await doc.deleteOne()
+    if (!result) {
+      return res.status(500).json({ error: { status: 500, statusCode: 500, message: 'Failed to Delete Account. Please Try Again Later.'}})
+    }
+    res.json({ success: { message: 'Account Deleted Successfully', details: { userid: result._id, username: result.username, fullname: `${result.firstname} ${result.middlename} ${result.lastname}`}}})
+  } catch (error) {
+    next({ status: 500, statusCode: 500, message: 'Failed to Delete Account. Please Try Again Later.'})
   }
 }

@@ -43,7 +43,7 @@ app.get("*", (req, res, next) => {
 // handle errors
 app.use((err, req, res, next) => {
   console.log(err)
-  res.status(err.status).json({error: err})
+  res.status(500).json({error: err})
 })
 
 module.exports = app

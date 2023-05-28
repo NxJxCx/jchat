@@ -30,6 +30,9 @@ router.put('/:userid/newpassword', userController.updateUserPassword);
 router.post('/:userid/verifypassword', userController.verifyPassword);
 
 /* update online status */
-router.post('/:userid/updateonlinestatus', userController.updateOnlineStatus);
+router.put('/:userid/updateonlinestatus', userController.updateOnlineStatus);
+
+/* delete user account */
+router.delete('/:userid', userController.deleteUserAccount);
 var _default = router;
 exports.default = _default;

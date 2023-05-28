@@ -10,9 +10,38 @@ const mimeTypes = {
   'image/gif': '.gif',
 }
 
+async function cleanUpTempFiles([...photo]) {
+  return new Promise(async (resolve, reject) => {
+    let removed = []
+    try {
+      for (let tmpphoto of photo) {
+        if (tmpphoto !== null) {
+          if (existsSync(tmpphoto.tempFilePath)) {
+            await rm(tmpphoto.tempFilePath)
+            removed.push(tmpphoto.tempFilePath)
+          }
+        }
+      }
+      resolve(removed)
+    } catch (err) {
+      reject(err)
+    }
+  })
+}
+
 export const uploadPhoto = async (req, res, next) => {
-  const { photo } = req.files
-  const { userid, forProfile } = req.body
+  const allfiles = req.files ? req.files : {}
+  const photo = allfiles.photo
+  for (let otherkey of Object.keys(allfiles)) {
+    if (otherkey !== 'photo') {
+      try {
+        await cleanUpTempFiles(Array.isArray(allfiles[otherkey]) ? [...allfiles[otherkey]] : [allfiles[otherkey]])
+      } catch (ee) {
+        console.log("error delete", ee)
+      }
+    }
+  }
+  const { userid, forProfile } = req.body ? req.body : {}
   try {
     const isForProfile = JSON.parse(forProfile)
     if (!(userid && photo && typeof(isForProfile) === 'boolean')) {
@@ -44,9 +73,12 @@ export const uploadPhoto = async (req, res, next) => {
       const savePath = path.join(__dirname, "..", "..", "public", 'profile-photo', uid, randomFilename)
       await filetoupload.mv(savePath)
       files.push({
-        filename: publicPath,
-        mimetype: filetoupload.mimetype,
+        filepath: '/' + publicPath,
+        filedir: '/' + publicPath.split('/').filter(v => v.match(mimeTypes[filetoupload.mimetype]) === null).join('/') + '/',
+        filename: randomFilename,
+        basename: randomFilename.split('.')[0],
         file_extension: mimeTypes[filetoupload.mimetype],
+        mimetype: filetoupload.mimetype,
         size: filetoupload.size
       })
     } else {
@@ -58,15 +90,18 @@ export const uploadPhoto = async (req, res, next) => {
         await mkdir(path.join(__dirname, "..", "..", "public", 'chat-photo', uid))
       }
       if (Array.isArray(photo)) { // multiple photos
-        for (let filetoupload of photo) {
+        for (const filetoupload of photo) {
           const randomFilename = randomBytes(16).toString("hex") + mimeTypes[filetoupload.mimetype]
           const publicPath = `chat-photo/${uid}/${randomFilename}`
           const savePath = path.join(__dirname, "..", "..", "public", 'chat-photo', uid, randomFilename)
           await filetoupload.mv(savePath)
           files.push({
-            filename: publicPath,
-            mimetype: filetoupload.mimetype,
+            filepath: '/' + publicPath,
+            filedir: '/' + publicPath.split('/').filter(v => v.match(mimeTypes[filetoupload.mimetype]) === null).join('/') + '/',
+            filename: randomFilename,
+            basename: randomFilename.split('.')[0],
             file_extension: mimeTypes[filetoupload.mimetype],
+            mimetype: filetoupload.mimetype,
             size: filetoupload.size
           })
         }
@@ -76,30 +111,25 @@ export const uploadPhoto = async (req, res, next) => {
         const savePath = path.join(__dirname, "..", "..", "public", 'chat-photo', uid, randomFilename)
         await photo.mv(savePath)
         files.push({
-          filename: publicPath,
-          mimetype: photo.mimetype,
+          filepath: '/' + publicPath,
+          filedir: '/' + publicPath.split('/').filter(v => v.match(mimeTypes[photo.mimetype]) === null).join('/') + '/',
+          filename: randomFilename,
+          basename: randomFilename.split('.')[0],
           file_extension: mimeTypes[photo.mimetype],
+          mimetype: photo.mimetype,
           size: photo.size
         })
       }
     }
     res.json({ success: { files, message: 'Photo Uploaded Sucessfully' } })
   } catch(error) {
-    if (Array.isArray(photo)) {
-      for (let tmpphoto of photo) {
-        try { 
-          await rm(tmpphoto.tempFilePath)
-      } catch (e) {
-        // skip
-      }
-      }
-    } else {
-      try {
-        await rm(photo.tempFilePath)
-      } catch (e) {
-        // skip
-      }
-    }
     next(error)
+  } finally {
+    // clean up temporary files
+    try {
+      await cleanUpTempFiles(Array.isArray(photo) ? [...photo] : [photo])
+    } catch (ee) {
+      console.log("error delete", ee)
+    }
   }
 }
