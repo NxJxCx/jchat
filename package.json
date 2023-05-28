@@ -14,7 +14,7 @@
     "lint": "eslint ./server",
     "test": "jest",
     "test:watch": "jest --watch",
-    "window-start": "set NODE_ENV=development && npm-run-all build server"
+    "windows": "set NODE_ENV=development && npm-run-all build server"
   },
   "nodemonConfig": {
     "exec": "npm run dev",
