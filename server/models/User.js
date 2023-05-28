@@ -55,7 +55,6 @@ const UserSchema = new Schema({
   },
   dateonline: {
     type: Date,
-    required: true,
     default: new Date(Date.now())
   }
 });

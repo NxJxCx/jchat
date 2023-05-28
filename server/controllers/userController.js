@@ -7,12 +7,12 @@ export const updateOnlineStatus = async (req, res, next) => {
     return res.status(403).json('Invalid Request!')
   }
   try {
-    const dateOnline = new Date(Date.now())
-    const doc = await User.findByIdAndUpdate(userid, { $set: { dateOnline }})
+    const dateonline = new Date(Date.now())
+    const doc = await User.findByIdAndUpdate(userid, { $set: { dateonline }})
     if (!doc) {
       return res.json({ error: { status: 500, statusCode: 500, message: 'Failed to update Online Status' }})
     }
-    res.json({ success: { message: 'Online Status Updated to ' + dateOnline.getTime() }})
+    res.json({ success: { message: 'Online Status Updated to ' + dateonline.getTime() }})
   } catch (error) {
     next(error)
   }
