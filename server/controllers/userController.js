@@ -61,6 +61,7 @@ export const signupUser = async (req, res, next) => {
       address, aboutme, photo
     })
     const result = await userModel.save()
+    console.log(result)
     if (result) {
       res.json({ success: { userid: result._id, message: 'Successfully Registered!'}})
     } else {

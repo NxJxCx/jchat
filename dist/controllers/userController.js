@@ -129,6 +129,7 @@ const signupUser = async (req, res, next) => {
       photo
     });
     const result = await userModel.save();
+    console.log(result);
     if (result) {
       res.json({
         success: {
