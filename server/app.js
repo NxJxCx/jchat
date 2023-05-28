@@ -14,13 +14,7 @@ const app = express()
 // database setup
 const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/jchat'
 const mongooseConfigs = { useNewUrlParser: true, useUnifiedTopology: true }
-mongoose.connect(mongoUri, mongooseConfigs).then((conn) => {
-  console.log("Connected to MongoDB database", `${conn.connections[0].host}/${conn.connections[0].name}`)
-}).catch(err => {
-  console.log(err)
-  console.log("Failed to connect to MongoDB database")
-  process.exit(1)
-})
+mongoose.connect(mongoUri, mongooseConfigs)
 
 app.use(logger('dev'))
 app.use(express.json())

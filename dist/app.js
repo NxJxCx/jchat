@@ -22,13 +22,7 @@ const mongooseConfigs = {
   useNewUrlParser: true,
   useUnifiedTopology: true
 };
-_mongoose.default.connect(mongoUri, mongooseConfigs).then(conn => {
-  console.log("Connected to MongoDB database", `${conn.connections[0].host}/${conn.connections[0].name}`);
-}).catch(err => {
-  console.log(err);
-  console.log("Failed to connect to MongoDB database");
-  process.exit(1);
-});
+_mongoose.default.connect(mongoUri, mongooseConfigs);
 app.use((0, _morgan.default)('dev'));
 app.use(_express.default.json());
 app.use(_express.default.urlencoded({
@@ -50,6 +44,7 @@ app.use(_express.default.static(_path.default.join(__dirname, "..", "frontend", 
 app.use(_express.default.static(_path.default.join(__dirname, "..", "public")));
 app.use('/api/users', routes.users);
 app.use('/api/uploadphoto', routes.uploadphoto);
+app.use('/api/chat', routes.chat);
 app.get("*", (req, res, next) => {
   res.sendFile(_path.default.join(__dirname, "..", "frontend", "build", "index.html"));
 });

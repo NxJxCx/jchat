@@ -57,6 +57,10 @@ const UserSchema = new _mongoose.Schema({
   photo: {
     type: String,
     required: true
+  },
+  dateonline: {
+    type: Date,
+    default: new Date(Date.now())
   }
 });
 const User = (0, _mongoose.model)('User', UserSchema);

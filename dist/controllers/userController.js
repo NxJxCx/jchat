@@ -3,9 +3,42 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.verifyPassword = exports.updateUserPassword = exports.updateUser = exports.signupUser = exports.loginUser = exports.getUserByQuery = void 0;
+exports.verifyPassword = exports.updateUserPassword = exports.updateUser = exports.updateOnlineStatus = exports.signupUser = exports.loginUser = exports.getUserByQuery = void 0;
 var _models = require("../models");
 var _bcryptjs = require("bcryptjs");
+const updateOnlineStatus = async (req, res, next) => {
+  const {
+    userid
+  } = req.body ? req.body : {};
+  if (!userid) {
+    return res.status(403).json('Invalid Request!');
+  }
+  try {
+    const dateonline = new Date(Date.now());
+    const doc = await _models.User.findByIdAndUpdate(userid, {
+      $set: {
+        dateonline
+      }
+    });
+    if (!doc) {
+      return res.json({
+        error: {
+          status: 500,
+          statusCode: 500,
+          message: 'Failed to update Online Status'
+        }
+      });
+    }
+    res.json({
+      success: {
+        message: 'Online Status Updated to ' + dateonline.getTime()
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+exports.updateOnlineStatus = updateOnlineStatus;
 const loginUser = async (req, res, next) => {
   const {
     username,
@@ -36,6 +69,8 @@ const loginUser = async (req, res, next) => {
       } else {
         res.json({
           error: {
+            status: 401,
+            statusCode: 401,
             message: 'Invalid Username or Password!'
           }
         });
@@ -44,6 +79,8 @@ const loginUser = async (req, res, next) => {
       // no username exists
       res.json({
         error: {
+          status: 404,
+          statusCode: 404,
           message: 'No Username Exists!'
         }
       });
@@ -102,6 +139,8 @@ const signupUser = async (req, res, next) => {
     } else {
       res.json({
         error: {
+          status: 500,
+          statusCode: 500,
           message: 'Failed to register user!'
         }
       });
@@ -115,7 +154,6 @@ const getUserByQuery = async (req, res, next) => {
   const {
     query,
     username,
-    email,
     search
   } = req.query ? req.query : {};
   try {
@@ -127,16 +165,15 @@ const getUserByQuery = async (req, res, next) => {
               username
             }).select('username');
             if (result) {
-              res.json(true);
+              return res.json(true);
             } else {
-              res.json(false);
+              return res.json(false);
             }
           } else {
-            res.status(500).json({
+            return res.status(500).json({
               error: 'Invalid Request!'
             });
           }
-          break;
         }
       case 'search':
         {
@@ -169,11 +206,10 @@ const getUserByQuery = async (req, res, next) => {
             photo: 1
           });
           if (result) {
-            res.json(result);
+            return res.json([...result]);
           } else {
-            res.json([]);
+            return res.json([]);
           }
-          break;
         }
       case 'profile':
         {
@@ -193,14 +229,15 @@ const getUserByQuery = async (req, res, next) => {
             photo: 1
           });
           if (result) {
-            res.json(result);
+            return res.json({
+              ...result
+            });
           } else {
-            res.json(null);
+            return res.json(null);
           }
-          break;
         }
       default:
-        res.status(403).json({
+        return res.status(403).json({
           error: 'Invalid Request!'
         });
     }
@@ -285,6 +322,8 @@ const updateUserPassword = async (req, res, next) => {
       } else {
         res.json({
           error: {
+            status: 500,
+            statusCode: 500,
             message: 'Failed to Change Password!'
           }
         });
