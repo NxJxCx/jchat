@@ -41,55 +41,63 @@ const uploadPhoto = async (req, res, next) => {
         }
       });
     }
-    console.log(photo);
+    if (!(0, _fs.existsSync)(_path.default.join(__dirname, "..", "..", "public"))) {
+      await (0, _promises.mkdir)(_path.default.join(__dirname, "..", "..", "public"));
+    }
     const files = [];
-    console.log("IS FOR PROOFILE?", isForProfile);
     if (isForProfile) {
       // for profile photo
       const filetoupload = Array.isArray(photo) && photo.length > 1 ? photo[0] : photo;
       const randomFilename = filetoupload.md5 + mimeTypes[filetoupload.mimetype];
       const publicPath = `profile-photo/${userid}/${randomFilename}`;
-      const dir = (0, _fs.existsSync)(_path.default.join(__dirname, "..", "..", "public", 'profile-photo', userid));
-      console.log(dir);
+      if (!(0, _fs.existsSync)(_path.default.join(__dirname, "..", "..", "public", 'profile-photo'))) {
+        await (0, _promises.mkdir)(_path.default.join(__dirname, "..", "..", "public", 'profile-photo'));
+      }
+      if (!(0, _fs.existsSync)(_path.default.join(__dirname, "..", "..", "public", 'profile-photo', userid))) {
+        await (0, _promises.mkdir)(_path.default.join(__dirname, "..", "..", "public", 'profile-photo', userid));
+      }
       const savePath = _path.default.join(__dirname, "..", "..", "public", 'profile-photo', userid, randomFilename);
-      const result = await filetoupload.mv(savePath);
-      files.append({
+      await filetoupload.mv(savePath);
+      files.push({
         filename: publicPath,
         mimetype: filetoupload.mimetype,
         file_extension: mimeTypes[filetoupload.mimetype],
         size: filetoupload.size
       });
-      console.log("RESULT:", result);
     } else {
       // for messenger chat photo
+      if (!(0, _fs.existsSync)(_path.default.join(__dirname, "..", "..", "public", 'chat-photo'))) {
+        await (0, _promises.mkdir)(_path.default.join(__dirname, "..", "..", "public", 'chat-photo'));
+      }
+      if (!(0, _fs.existsSync)(_path.default.join(__dirname, "..", "..", "public", 'chat-photo', userid))) {
+        await (0, _promises.mkdir)(_path.default.join(__dirname, "..", "..", "public", 'chat-photo', userid));
+      }
       if (Array.isArray(photo)) {
         // multiple photos
         for (let filetoupload of photo) {
           const randomFilename = filetoupload.md5 + mimeTypes[filetoupload.mimetype];
           const publicPath = `chat-photo/${userid}/${randomFilename}`;
           const savePath = _path.default.join(__dirname, "..", "..", "public", 'chat-photo', userid, randomFilename);
-          const result = await filetoupload.mv(savePath);
-          files.append({
+          await filetoupload.mv(savePath);
+          files.push({
             filename: publicPath,
             mimetype: filetoupload.mimetype,
             file_extension: mimeTypes[filetoupload.mimetype],
             size: filetoupload.size
           });
-          console.log("RESULT:", result);
         }
       } else {
         // single photo
         const randomFilename = photo.md5 + mimeTypes[photo.mimetype];
         const publicPath = `chat-photo/${userid}/${randomFilename}`;
         const savePath = _path.default.join(__dirname, "..", "..", "public", 'chat-photo', userid, randomFilename);
-        const result = await filetoupload.mv(savePath);
-        files.append({
+        await photo.mv(savePath);
+        files.push({
           filename: publicPath,
           mimetype: photo.mimetype,
           file_extension: mimeTypes[photo.mimetype],
           size: photo.size
         });
-        console.log("RESULT:", result);
       }
     }
     res.json({
