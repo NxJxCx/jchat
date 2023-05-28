@@ -92,6 +92,7 @@ const router = createBrowserRouter([
         })
         const result = response.data;
         if (result.success) {
+          console.log(result.success)
           Swal.fire({
             icon: 'success',
             title: 'Success',
