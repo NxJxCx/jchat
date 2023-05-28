@@ -13,11 +13,11 @@ export const loginUser = async (req, res, next) => {
       if (isValid) {
         res.json({ success: { userid: result._id, message: 'Successfully Logged In!' }})
       } else {
-        res.json({ error: { message: 'Invalid Username or Password!' }})
+        res.json({ error: { status: 401, statusCode: 401, message: 'Invalid Username or Password!' }})
       }
     } else {
       // no username exists
-      res.json({ error: { message: 'No Username Exists!' }})
+      res.json({ error: { status: 404, statusCode: 404, message: 'No Username Exists!' }})
     }
     
   } catch (error) {
@@ -48,7 +48,7 @@ export const signupUser = async (req, res, next) => {
     if (result) {
       res.json({ success: { userid: result._id, message: 'Successfully Registered!'}})
     } else {
-      res.json({ error: { message: 'Failed to register user!' }})
+      res.json({ error: { status: 500, statusCode: 500, message: 'Failed to register user!' }})
     }
   } catch (error) {
     next(error)
@@ -80,7 +80,7 @@ export const getUserByQuery = async (req, res, next) => {
         }
         const result = await User.find(searchParams).select({ _id: 0, username: 1, firstname: 1, middlename: 1, lastname: 1, gender: 1, civilstatus: 1, photo: 1 })
         if (result) {
-          return res.json(result)
+          return res.json([...result])
         } else {
           return res.json([])
         }
@@ -88,7 +88,7 @@ export const getUserByQuery = async (req, res, next) => {
       case 'profile': {
         const result = await User.findOne({ username }).select({ _id: 0, username: 1, firstname: 1, middlename: 1, lastname: 1, birthday: 1, gender: 1, civilstatus: 1, address: 1, aboutme: 1, photo: 1 })
         if (result) {
-          return res.json(result)
+          return res.json({...result})
         } else {
           return res.json(null)
         }
@@ -149,7 +149,7 @@ export const updateUserPassword = async (req, res, next) => {
       if (result) {
         res.json({ success: { message: 'Successfully Changed Password!' }})
       } else {
-        res.json({ error: { message: 'Failed to Change Password!'}})
+        res.json({ error: { status: 500, statusCode: 500, message: 'Failed to Change Password!'}})
       }
     } else {
       res.status(403).json('Invalid Password!')

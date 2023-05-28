@@ -32,6 +32,10 @@ const ChatSchema = new Schema({
     message: {
       type: String
     }
+  },
+  lastUpdated: {
+    type: Number,
+    required: true
   }
 });
 
