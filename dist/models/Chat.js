@@ -8,7 +8,7 @@ var _mongoose = require("mongoose");
 const ChatSchema = new _mongoose.Schema({
   users: {
     type: [{
-      id: {
+      _id: {
         type: _mongoose.Schema.Types.ObjectId,
         required: true,
         ref: 'User'
@@ -18,11 +18,12 @@ const ChatSchema = new _mongoose.Schema({
         default: false
       }
     }],
+    unique: true,
     validate: [val => val.length === 2, '{PATH} exceeds the limit of 10']
   },
   conversation: {
     type: [{
-      id: {
+      _id: {
         type: _mongoose.Schema.Types.ObjectId,
         required: true
       },

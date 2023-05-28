@@ -15,7 +15,7 @@ const mimeTypes = {
   'image/jpeg': '.jpeg',
   'image/gif': '.gif'
 };
-async function cleanUpTempFiles([...photo]) {
+function cleanUpTempFiles([...photo]) {
   return new Promise(async (resolve, reject) => {
     let removed = [];
     try {

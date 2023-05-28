@@ -1,5 +1,6 @@
-import User from './User';
+import User from './User'
+import Chat from './Chat'
 
 export {
-  User
-};
+  User, Chat
+}

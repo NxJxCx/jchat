@@ -7,57 +7,77 @@ exports.sendChat = exports.getChatData = void 0;
 var _models = require("../models");
 var _mongoose = require("mongoose");
 const ObjectId = _mongoose.Types.ObjectId;
-async function initializeChat(userIdA, userIdB) {
+function initializeChat(userIdA, userIdB) {
   return new Promise((resolve, _) => {
-    const newchat = new _models.Chat({
-      users: [{
-        id: userIdA
-      }, {
-        id: userIdB
-      }],
-      conversation: [],
-      lastestUpdate: {},
-      lastUpdated: 0
-    });
-    newchat.save().then(doc => {
-      if (!doc) {
-        resolve(false);
+    _models.Chat.findOne({
+      'users._id': {
+        $all: [userIdA.toString(), userIdB.toString()]
       }
-      resolve(doc);
-    }).catch(() => resolve(false));
+    }).then(oldchat => {
+      if (!oldchat) {
+        const newchat = new _models.Chat({
+          users: [{
+            _id: userIdA,
+            seenLatest: false
+          }, {
+            _id: userIdB,
+            seenLatest: false
+          }],
+          conversation: [],
+          lastestUpdate: {},
+          lastUpdated: 0
+        });
+        newchat.save().then(doc => {
+          if (!doc) {
+            resolve(false);
+          }
+          resolve(doc);
+        }).catch(() => resolve(false));
+      } else {
+        resolve(oldchat);
+      }
+    });
   });
 }
-async function getObjectIdsBySearch(myid, search) {
-  return new Promise((resolve, _) => {
-    const searchParams = {
+function getObjectIdsBySearch(search) {
+  return new Promise(resolve => {
+    Promise.all([_models.User.find({
       username: {
         $regex: search,
         $options: 'i'
-      },
+      }
+    }).select({
+      _id: 1
+    }), _models.User.find({
       firstname: {
         $regex: search,
         $options: 'i'
-      },
+      }
+    }).select({
+      _id: 1
+    }), _models.User.find({
       middlename: {
         $regex: search,
         $options: 'i'
-      },
+      }
+    }).select({
+      _id: 1
+    }), _models.User.find({
       lastname: {
         $regex: search,
         $options: 'i'
       }
-    };
-    _models.User.find(searchParams).$where(function () {
-      return myid !== this._id.toString();
     }).select({
       _id: 1
-    }).then(docs => {
-      const result = [...docs].map(v => v._id);
-      if (result.length === 0) {
-        resolve(false);
-      }
+    })]).then(results => {
+      let result = [];
+      results.flat().forEach(v => {
+        if (!result.includes(v._id.toString())) {
+          result.push(v._id.toString());
+        }
+      }, []);
       resolve(result);
-    }).catch(() => resolve(false));
+    }).catch(_ => resolve([]));
   });
 }
 const getChatData = async (req, res, next) => {
@@ -76,21 +96,21 @@ const getChatData = async (req, res, next) => {
           }
           const chatdoc = await _models.Chat.findById(chatid).select('users conversation');
           if (!chatdoc) {
-            return res.status(403).json('Invalid Request!');
+            return res.status(403).json('No Conversation Found!');
           }
           const hasUserId = chatdoc.users.filter(({
-            id
-          }) => id.toString() === from_user).length === 1;
+            _id
+          }) => _id.toString() === from_user).length === 1;
           if (!hasUserId) {
-            return res.status(403).json('Invalid Request!');
+            return res.status(403).json('Invalid Conversation!');
           }
           // update seen
           const myuserindex = [...chatdoc.users].map(({
-            id
-          }, i) => id.toString() === from_user ? i : null).filter(v => v !== null)[0];
+            _id
+          }, i) => _id.toString() === from_user ? i : null).filter(v => v !== null)[0];
           chatdoc.users[myuserindex].seenLatest = true;
           await chatdoc.save();
-          const sortedConversation = [...chatdoc.conversation].sort((a, b) => b.getTime() - a.getTime());
+          const sortedConversation = [...chatdoc.conversation].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
           return res.json({
             success: {
               data: sortedConversation,
@@ -104,7 +124,7 @@ const getChatData = async (req, res, next) => {
           if (!from_user && !to_user) {
             return res.status(403).json('Invalid Request!');
           }
-          const to_userids = await getObjectIdsBySearch(from_user, to_user);
+          const to_userids = await getObjectIdsBySearch(to_user);
           if (!to_userids) {
             return res.json({
               success: {
@@ -113,16 +133,14 @@ const getChatData = async (req, res, next) => {
               }
             });
           }
-          const chatdocs = await _models.Chat.find().$where(function () {
-            const chatmodel = this;
-            const userids = chatmodel.users.map(({
-              id
-            }) => id);
-            const otheruseridindex = userids.includes(ObjectId(from_user)) ? chatmodel.users[1 - userids.indexOf(ObjectId(from_user))] : -1;
-            if (otheruseridindex === -1) {
-              return false;
+          const chatdocs = await _models.Chat.find({
+            'users._id': {
+              $all: [from_user],
+              $in: [...to_userids]
+            },
+            lastUpdated: {
+              $gt: 0
             }
-            return to_userids.some(v => v.toString() === userids[otheruseridindex].toString()) && chatmodel.lastUpdated > 0;
           }).select('users latestUpdate').sort({
             lastUpdated: -1
           });
@@ -130,14 +148,16 @@ const getChatData = async (req, res, next) => {
             return res.json({
               success: {
                 data: [],
-                message: 'No Users Found'
+                message: 'No Users Found',
+                length: 0
               }
             });
           }
           return res.json({
             success: {
               data: [...chatdocs],
-              message: `${chatdocs.length} Chat Conversations Found`
+              message: `${chatdocs.length} Chat Conversations Found`,
+              length: chatdocs.length
             }
           });
         }
@@ -146,11 +166,13 @@ const getChatData = async (req, res, next) => {
           if (!from_user) {
             return res.status(403).json('Invalid Request!');
           }
-          const chatdocs = await _models.Chat.find().$where(function () {
-            const userids = this.users.map(({
-              id
-            }) => id);
-            return userids.includes(ObjectId(from_user)) && this.lastUpdated > 0;
+          const chatdocs = await _models.Chat.find({
+            'users._id': {
+              $in: [from_user]
+            },
+            lastUpdated: {
+              $gt: 0
+            }
           }).select('users latestUpdate').sort({
             lastUpdated: -1
           });
@@ -165,7 +187,8 @@ const getChatData = async (req, res, next) => {
           return res.json({
             success: {
               data: [...chatdocs],
-              message: `${chatdocs.length} Chat Conversations Found`
+              message: `${chatdocs.length} Chat Conversations Found`,
+              length: chatdocs.length
             }
           });
         }
@@ -185,7 +208,7 @@ const sendChat = async (req, res, next) => {
     message,
     photos
   } = req.body ? req.body : {};
-  if (!from_userid && !to_username && (!message || !photos)) {
+  if (!(from_userid && (!chatid && to_username || chatid) && (message || photos))) {
     return res.status(403).json('Invalid Request!');
   }
   let chat = false;
@@ -198,26 +221,24 @@ const sendChat = async (req, res, next) => {
         username: to_username
       }).select('username');
       if (!(senderdoc && receiverdoc && senderdoc.username !== receiverdoc.username)) {
-        return res.status(500).json('Invalid Request!');
+        return res.status(500).json('Could not send message!');
       }
       chat = await initializeChat(senderdoc._id, receiverdoc._id);
     } else {
-      chat = await _models.Chat.findById(chatid);
+      chat = await _models.Chat.findById(chatid).where('users._id').all([from_userid]);
     }
     if (!chat) {
-      return res.status(500).json('Invalid Request!');
+      return res.status(500).json('No conversation found!');
     }
     const datenow = new Date(Date.now());
-    senderdoc = senderdoc ? senderdoc : await _models.User.findById(from_id).select('username firstname lastname');
-    receiverdoc = receiverdoc ? receiverdoc : await _models.User.findOne({
-      username: to_username
-    }).select('username');
-    const prevConversation = chat.conversations;
+    senderdoc = senderdoc ? senderdoc : await _models.User.findById(from_userid).select('username firstname lastname');
+    receiverdoc = receiverdoc ? receiverdoc : await _models.User.findById(chat.users.filter(v => v._id.toString() !== from_userid)[0]._id.toString()).select('username');
+    const prevConversation = chat.conversation;
     const conversationId = ObjectId();
     if (typeof message === "string") {
       // save normal message chat
       prevConversation.push({
-        id: conversationId,
+        _id: conversationId,
         timestamp: datenow,
         senderid: senderdoc._id,
         message
@@ -230,12 +251,12 @@ const sendChat = async (req, res, next) => {
       };
       chat.lastUpdated = datenow.getTime();
       for (let i in chat.users) {
-        chat.users[i].seenLatest = chat.users[i].id.toString() === from_userid;
+        chat.users[i].seenLatest = chat.users[i]._id.toString() === from_userid;
       }
     } else if (Array.isArray(photos) && photos.length > 0) {
       // save photos path instead
       prevConversation.push({
-        id: conversationId,
+        _id: conversationId,
         timestamp: datenow,
         senderid: senderdoc._id,
         message: photos.length > 1 ? 'Sent photos' : 'Sent a photo',
@@ -249,7 +270,7 @@ const sendChat = async (req, res, next) => {
       };
       chat.lastUpdated = datenow.getTime();
       for (let i in chat.users) {
-        chat.users[i].seenLatest = chat.users[i].id.toString() === from_userid;
+        chat.users[i].seenLatest = chat.users[i]._id.toString() === from_userid;
       }
     } else {
       return res.json({
