@@ -40,6 +40,7 @@ app.use(express.static(path.join(__dirname, "..", "public")))
 
 app.use('/api/users', routes.users)
 app.use('/api/uploadphoto', routes.uploadphoto)
+app.use('/api/chat', routes.chat)
 
 app.get("*", (req, res, next) => {
   res.sendFile(path.join(__dirname, "..", "frontend", "build", "index.html"))
@@ -51,4 +52,4 @@ app.use((err, req, res, next) => {
   res.status(err.status).json({error: err})
 })
 
-module.exports = app;
+module.exports = app

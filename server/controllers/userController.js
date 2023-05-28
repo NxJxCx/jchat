@@ -63,14 +63,13 @@ export const getUserByQuery = async (req, res, next) => {
         if (username) {
           const result = await User.findOne({ username }).select('username')
           if (result) {
-            res.json(true)
+            return res.json(true)
           } else {
-            res.json(false)
+            return res.json(false)
           }
         } else {
-          res.status(500).json({ error: 'Invalid Request!'})
+          return res.status(500).json({ error: 'Invalid Request!'})
         }
-        break
       }
       case 'search': {
         const searchParams = {
@@ -81,23 +80,21 @@ export const getUserByQuery = async (req, res, next) => {
         }
         const result = await User.find(searchParams).select({ _id: 0, username: 1, firstname: 1, middlename: 1, lastname: 1, gender: 1, civilstatus: 1, photo: 1 })
         if (result) {
-          res.json(result)
+          return res.json(result)
         } else {
-          res.json([])
+          return res.json([])
         }
-        break
       }
       case 'profile': {
         const result = await User.findOne({ username }).select({ _id: 0, username: 1, firstname: 1, middlename: 1, lastname: 1, birthday: 1, gender: 1, civilstatus: 1, address: 1, aboutme: 1, photo: 1 })
         if (result) {
-          res.json(result)
+          return res.json(result)
         } else {
-          res.json(null)
+          return res.json(null)
         }
-        break
       }
       default:
-        res.status(403).json({ error: 'Invalid Request!'})
+        return res.status(403).json({ error: 'Invalid Request!'})
     }
   } catch (error) {
     next(error)
@@ -105,7 +102,7 @@ export const getUserByQuery = async (req, res, next) => {
 }
 
 export const updateUser = async (req, res, next) => {
-  const userid = req.params ? req.params.userid : null;
+  const userid = req.params ? req.params.userid : null
   if (!userid) {
     return req.status(403).json('Invalid Request!')
   }
@@ -131,7 +128,7 @@ export const updateUser = async (req, res, next) => {
 }
 
 export const updateUserPassword = async (req, res, next) => {
-  const userid = req.params ? req.params.userid : null;
+  const userid = req.params ? req.params.userid : null
   if (!userid) {
     return req.status(403).json('Invalid Request!')
   }
@@ -163,7 +160,7 @@ export const updateUserPassword = async (req, res, next) => {
 }
 
 export const verifyPassword = async (req, res, next) => {
-  const userid = req.params ? req.params.userid : null;
+  const userid = req.params ? req.params.userid : null
   if (!userid) {
     return req.status(403).json('Invalid Request!')
   }
