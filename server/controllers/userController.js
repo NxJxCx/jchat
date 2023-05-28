@@ -1,6 +1,23 @@
 import { User } from '../models'
 import { hash, compare } from 'bcryptjs'
 
+export const updateOnlineStatus = async (req, res, next) => {
+  const { userid } = req.body ? req.body : {}
+  if (!userid) {
+    return res.status(403).json('Invalid Request!')
+  }
+  try {
+    const dateOnline = new Date(Date.now())
+    const doc = await User.findByIdAndUpdate(userid, { $set: { dateOnline }})
+    if (!doc) {
+      return res.json({ error: { status: 500, statusCode: 500, message: 'Failed to update Online Status' }})
+    }
+    res.json({ success: { message: 'Online Status Updated to ' + dateOnline.getTime() }})
+  } catch (error) {
+    next(error)
+  }
+}
+
 export const loginUser = async (req, res, next) => {
   const { username, password } = req.body ? req.body : {}
   if (!(username && password)) {
@@ -19,7 +36,6 @@ export const loginUser = async (req, res, next) => {
       // no username exists
       res.json({ error: { status: 404, statusCode: 404, message: 'No Username Exists!' }})
     }
-    
   } catch (error) {
     next(error)
   }
@@ -56,7 +72,7 @@ export const signupUser = async (req, res, next) => {
 }
 
 export const getUserByQuery = async (req, res, next) => {
-  const { query, username, email, search } = req.query ? req.query : {}
+  const { query, username, search } = req.query ? req.query : {}
   try {
     switch (query) {
       case 'exists': {

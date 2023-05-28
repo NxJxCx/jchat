@@ -52,6 +52,11 @@ const UserSchema = new Schema({
   photo: {
     type: String,
     required: true,
+  },
+  dateonline: {
+    type: Date,
+    required: true,
+    default: new Date(Date.now())
   }
 });
 

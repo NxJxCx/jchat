@@ -22,5 +22,8 @@ router.put('/:userid/newpassword', userController.updateUserPassword)
 /* verify user password */
 router.post('/:userid/verifypassword', userController.verifyPassword)
 
+/* update online status */
+router.post('/:userid/updateonlinestatus', userController.updateOnlineStatus)
+
 
 export default router
