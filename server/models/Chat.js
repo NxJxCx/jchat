@@ -4,9 +4,15 @@ const ChatSchema = new Schema({
   users: {
     type: [
       {
-        type: Schema.Types.ObjectId,
-        required: true,
-        ref: 'User'
+        id: {
+          type: Schema.Types.ObjectId,
+          required: true,
+          ref: 'User'
+        },
+        seenLatest: {
+          type: Boolean,
+          default: false
+        }
       }
     ],
     validate: [(val) => val.length === 2, '{PATH} exceeds the limit of 10']
@@ -14,6 +20,7 @@ const ChatSchema = new Schema({
   conversation: {
     type: [
       {
+        id: { type: Schema.Types.ObjectId, required: true },
         timestamp: { type: Date, required: true },
         message: { type: String, required: true },
         senderid: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
