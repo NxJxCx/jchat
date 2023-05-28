@@ -5,4 +5,6 @@ const router = express.Router()
 
 router.get('/', chatController.getChatData)
 
+router.post('/', chatController.sendChat)
+
 export default router
