@@ -22,7 +22,7 @@ export default function Login() {
             <button className="login-button">Log in</button>
           </div>
           <div className="register-content">
-            New user? <a href="/register">Register here!</a>
+            New user? <a href="/signup">Register here!</a>
           </div>
         </div>
       </div>
