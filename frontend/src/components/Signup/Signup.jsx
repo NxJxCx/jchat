@@ -1,6 +1,6 @@
 import { Form } from 'react-router-dom'
 import './Signup.css'
-import Checkbox from '../Checkbox/Checkbox'
+// import Checkbox from '../Checkbox/Checkbox'
 
 export default function Signup() {
   return (
