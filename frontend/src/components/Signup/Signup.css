@@ -11,7 +11,7 @@
 
 .signup-box {
   width: 25em;
-  height: 35em;
+  height: 48em;
   background-color: rgba(15,15,15,0.7);
   display: flex;
   flex-direction: column;
@@ -36,8 +36,8 @@
   justify-content: center;
   align-items: center;
   width: 100%;
-  margin-top: 2em;
-  margin-bottom: 2em;
+  margin-top: 1em;
+  margin-bottom: 1em;
 }
 
 .signup-form label input {
@@ -77,6 +77,22 @@
   background-repeat: no-repeat;
   background-size: contain;
 }
+
+.signup-form label select {
+  outline: none !important;
+  border: none !important;
+  background-color: transparent;
+  color: var(--light);
+  width: 100%;
+}
+
+.signup-form label select:focus {
+  outline: none !important;
+  border: none !important;
+  background-color: transparent;
+  color: var(--light);
+}
+
 
 .signup-form button.signup-button {
   width: 100%;
