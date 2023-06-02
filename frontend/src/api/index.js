@@ -26,7 +26,7 @@ export const sendChatMessage = (from_userid, to_username, message) => axios.post
 
 export const sendChatPhoto = (from_userid, to_username, photos=[]) => axios.post(`/api/chat`, { from_userid, to_username, photos })
 
-export const uploadImage = ({ formData, userid, file, filename, forProfile=false, onUploadProgress }) => {
+export const uploadImage = ({ formData, userid, file, filename, forProfile=false, onUploadProgress=(ev)=>{ console.log("EV", ev) } }) => {
     const data = formData ? formData : new FormData()
     if (!formData) {
         if (userid) { 
