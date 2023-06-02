@@ -70,6 +70,11 @@
   transform: translateY(-250%);
 }
 
+.login-form label:hover::after {
+  border-top: 2px solid rgb(200, 100, 100);
+}
+
+
 .login-form label span {
   width: 1.5em;
   height: 1.5em;

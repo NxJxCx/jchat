@@ -44,33 +44,28 @@ export const uploadPhoto = async (req, res, next) => {
   const { userid, forProfile } = req.body ? req.body : {}
   try {
     const isForProfile = JSON.parse(forProfile)
-    if (!(userid && photo && typeof(isForProfile) === 'boolean')) {
+    if (!(photo && typeof(isForProfile) === 'boolean')) {
       return res.status(403).json('Invalid Request!')
     }
-    const uid = userid.trim()
-    const doc = await User.findById(uid)
-    if (!doc) {
-      return res.json({ error: { status: 404, statusCode: 404, message: 'No Such User!'} })
-    }
-    if (!photo) {
-      return res.json({ error: { status: 400, statusCode: 400, message: 'No files to upload!'} })
-    }
+    const uid = userid ? userid.trim() : false
+    const doc = uid ? await User.findById(uid) : false
+    const files = []
     if (!existsSync(path.join(__dirname, "..", "..", "public"))) {
       await mkdir(path.join(__dirname, "..", "..", "public"))
     }
-    const files = []
-    if (isForProfile) {
-      // for profile photo
+    if (!doc && isForProfile) {
+      // for profile photo only
       const filetoupload = Array.isArray(photo) && photo.length > 1 ? photo[0] : photo
       const randomFilename = randomBytes(16).toString("hex") + mimeTypes[filetoupload.mimetype]
-      const publicPath = `profile-photo/${uid}/${randomFilename}`
+      const randId = `${Math.random() * 99999999999}`
+      const publicPath = `profile-photo/${randId}/${randomFilename}`
       if (!existsSync(path.join(__dirname, "..", "..", "public", 'profile-photo'))) {
         await mkdir(path.join(__dirname, "..", "..", "public", 'profile-photo'))
       }
-      if (!existsSync(path.join(__dirname, "..", "..", "public", 'profile-photo', uid))) {
-        await mkdir(path.join(__dirname, "..", "..", "public", 'profile-photo', uid))
+      if (!existsSync(path.join(__dirname, "..", "..", "public", 'profile-photo', randId))) {
+        await mkdir(path.join(__dirname, "..", "..", "public", 'profile-photo', randId))
       }
-      const savePath = path.join(__dirname, "..", "..", "public", 'profile-photo', uid, randomFilename)
+      const savePath = path.join(__dirname, "..", "..", "public", 'profile-photo', randId, randomFilename)
       await filetoupload.mv(savePath)
       files.push({
         filepath: '/' + publicPath,
@@ -82,45 +77,74 @@ export const uploadPhoto = async (req, res, next) => {
         size: filetoupload.size
       })
     } else {
-      // for messenger chat photo
-      if (!existsSync(path.join(__dirname, "..", "..", "public", 'chat-photo'))) {
-        await mkdir(path.join(__dirname, "..", "..", "public", 'chat-photo'))
+      // for chat uploads
+      if (!photo) {
+        return res.json({ error: { status: 400, statusCode: 400, message: 'No files to upload!'} })
       }
-      if (!existsSync(path.join(__dirname, "..", "..", "public", 'chat-photo', uid))) {
-        await mkdir(path.join(__dirname, "..", "..", "public", 'chat-photo', uid))
-      }
-      if (Array.isArray(photo)) { // multiple photos
-        for (const filetoupload of photo) {
-          const randomFilename = randomBytes(16).toString("hex") + mimeTypes[filetoupload.mimetype]
-          const publicPath = `chat-photo/${uid}/${randomFilename}`
-          const savePath = path.join(__dirname, "..", "..", "public", 'chat-photo', uid, randomFilename)
-          await filetoupload.mv(savePath)
-          files.push({
-            filepath: '/' + publicPath,
-            filedir: '/' + publicPath.split('/').filter(v => v.match(mimeTypes[filetoupload.mimetype]) === null).join('/') + '/',
-            filename: randomFilename,
-            basename: randomFilename.split('.')[0],
-            file_extension: mimeTypes[filetoupload.mimetype],
-            mimetype: filetoupload.mimetype,
-            size: filetoupload.size
-          })
+      if (isForProfile) {
+        // for profile photo
+        const filetoupload = Array.isArray(photo) && photo.length > 1 ? photo[0] : photo
+        const randomFilename = randomBytes(16).toString("hex") + mimeTypes[filetoupload.mimetype]
+        const publicPath = `profile-photo/${uid}/${randomFilename}`
+        if (!existsSync(path.join(__dirname, "..", "..", "public", 'profile-photo'))) {
+          await mkdir(path.join(__dirname, "..", "..", "public", 'profile-photo'))
         }
-      } else { // single photo
-        const randomFilename = randomBytes(16).toString("hex") + mimeTypes[photo.mimetype]
-        const publicPath = `chat-photo/${uid}/${randomFilename}`
-        const savePath = path.join(__dirname, "..", "..", "public", 'chat-photo', uid, randomFilename)
-        await photo.mv(savePath)
+        if (!existsSync(path.join(__dirname, "..", "..", "public", 'profile-photo', uid))) {
+          await mkdir(path.join(__dirname, "..", "..", "public", 'profile-photo', uid))
+        }
+        const savePath = path.join(__dirname, "..", "..", "public", 'profile-photo', uid, randomFilename)
+        await filetoupload.mv(savePath)
         files.push({
           filepath: '/' + publicPath,
-          filedir: '/' + publicPath.split('/').filter(v => v.match(mimeTypes[photo.mimetype]) === null).join('/') + '/',
+          filedir: '/' + publicPath.split('/').filter(v => v.match(mimeTypes[filetoupload.mimetype]) === null).join('/') + '/',
           filename: randomFilename,
           basename: randomFilename.split('.')[0],
-          file_extension: mimeTypes[photo.mimetype],
-          mimetype: photo.mimetype,
-          size: photo.size
+          file_extension: mimeTypes[filetoupload.mimetype],
+          mimetype: filetoupload.mimetype,
+          size: filetoupload.size
         })
+      } else {
+        // for messenger chat photo
+        if (!existsSync(path.join(__dirname, "..", "..", "public", 'chat-photo'))) {
+          await mkdir(path.join(__dirname, "..", "..", "public", 'chat-photo'))
+        }
+        if (!existsSync(path.join(__dirname, "..", "..", "public", 'chat-photo', uid))) {
+          await mkdir(path.join(__dirname, "..", "..", "public", 'chat-photo', uid))
+        }
+        if (Array.isArray(photo)) { // multiple photos
+          for (const filetoupload of photo) {
+            const randomFilename = randomBytes(16).toString("hex") + mimeTypes[filetoupload.mimetype]
+            const publicPath = `chat-photo/${uid}/${randomFilename}`
+            const savePath = path.join(__dirname, "..", "..", "public", 'chat-photo', uid, randomFilename)
+            await filetoupload.mv(savePath)
+            files.push({
+              filepath: '/' + publicPath,
+              filedir: '/' + publicPath.split('/').filter(v => v.match(mimeTypes[filetoupload.mimetype]) === null).join('/') + '/',
+              filename: randomFilename,
+              basename: randomFilename.split('.')[0],
+              file_extension: mimeTypes[filetoupload.mimetype],
+              mimetype: filetoupload.mimetype,
+              size: filetoupload.size
+            })
+          }
+        } else { // single photo
+          const randomFilename = randomBytes(16).toString("hex") + mimeTypes[photo.mimetype]
+          const publicPath = `chat-photo/${uid}/${randomFilename}`
+          const savePath = path.join(__dirname, "..", "..", "public", 'chat-photo', uid, randomFilename)
+          await photo.mv(savePath)
+          files.push({
+            filepath: '/' + publicPath,
+            filedir: '/' + publicPath.split('/').filter(v => v.match(mimeTypes[photo.mimetype]) === null).join('/') + '/',
+            filename: randomFilename,
+            basename: randomFilename.split('.')[0],
+            file_extension: mimeTypes[photo.mimetype],
+            mimetype: photo.mimetype,
+            size: photo.size
+          })
+        }
       }
     }
+    
     res.json({ success: { files, message: 'Photo Uploaded Sucessfully' } })
   } catch(error) {
     next(error)

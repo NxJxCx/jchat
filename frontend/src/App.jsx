@@ -1,4 +1,4 @@
-import { RouterProvider, createBrowserRouter, redirect, json } from 'react-router-dom'
+import { RouterProvider, createBrowserRouter, redirect } from 'react-router-dom'
 import Swal from 'sweetalert2'
 import Login from './components/Login/Login'
 import Signup from './components/Signup/Signup'

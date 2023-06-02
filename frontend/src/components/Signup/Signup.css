@@ -10,7 +10,7 @@
 }
 
 .signup-box {
-  width: 25em;
+  width: 50em;
   height: 48em;
   background-color: rgba(15,15,15,0.7);
   display: flex;
@@ -70,6 +70,11 @@
   transform: translateY(-250%);
 }
 
+.signup-form label:hover::after {
+  border-top: 2px solid rgb(200, 100, 100);
+}
+
+
 .signup-form label span {
   width: 1.5em;
   height: 1.5em;
@@ -84,17 +89,21 @@
   background-color: transparent;
   color: var(--light);
   width: 100%;
+  transform: translateY(-50%);
+  padding: 0.8em 0;
 }
 
 .signup-form label select:focus {
   outline: none !important;
   border: none !important;
   background-color: transparent;
-  color: var(--light);
 }
 
+.signup-form label select option {
+  color: black;
+}
 
-.signup-form button.signup-button {
+.signup-box button.signup-button {
   width: 100%;
   height: 3.5em;
   background-image: linear-gradient(rgb(225, 100, 100), rgb(225, 75, 75), rgb(220, 50, 50));
@@ -108,7 +117,7 @@
   position: relative;
 }
 
-.signup-form button.signup-button::after {
+.signup-box button.signup-button::after {
   content: "";
   width: 1.7em;
   height: 1.7em;
