@@ -195,9 +195,11 @@ export default function Signup() {
       filename: e.target.value,
       forProfile: true,
       onUploadProgress: (ev) => {
+        console.log(progressbar)
         if (progressbar) {
+          console.log(progressbar, progressbar.classList, ev);
           progressbar.classList.remove('d-none')
-          progressbar.style.width = `${Math.floor(ev.progress * 100)}% `
+          progressbar.style = { width: `${Math.floor(ev.progress * 100)}% ` }
           // progressbar.innerHTML = `${Math.floor(ev.progress * 100)}%`
         }
       }
