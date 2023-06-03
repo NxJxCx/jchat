@@ -41,6 +41,7 @@ app.use((0, _expressFileupload.default)({
 }));
 
 app.use(_express.default.static(_path.default.join(__dirname, "..", "frontend", "build")));
+app.use(_express.default.static(_path.default.join(__dirname, "public")));
 app.use(_express.default.static(_path.default.join(__dirname, "..", "public")));
 app.use('/api/users', routes.users);
 app.use('/api/uploadphoto', routes.uploadphoto);

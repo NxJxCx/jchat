@@ -3,7 +3,7 @@ import Swal from 'sweetalert2'
 import Login from './components/Login/Login'
 import Signup from './components/Signup/Signup'
 import Chat from './components/Chat/Chat'
-import { loginUser, uploadImage } from './api'
+import { loginUser, uploadImage, signupUser } from './api'
 import TestUpload from './components/TestUpload'
 
 const router = createBrowserRouter([
@@ -61,6 +61,30 @@ const router = createBrowserRouter([
     loader: () => {
       const logininfo = window.localStorage.getItem('logininfo')
       return !!logininfo ? redirect('/') : { }
+    },
+    action: async ({ request }) => {
+      const frmData = await request.formData()
+      const {
+        username, password,
+        firstname, middlename, lastname,
+        birthday, gender, civilstatus,
+        address, aboutme, photo,
+        isvalidform
+      } = Object.fromEntries(frmData)
+      const isValidform = isvalidform ? JSON.parse(isvalidform) : { a: false }
+      const isValid = Object.values(isValidform).every(v => v === true)
+      if (isValid) {
+        try {
+          const aresp = await signupUser(username, password, firstname,
+            middlename, lastname, birthday,
+            gender, civilstatus, address,
+            aboutme, photo)
+          return aresp.data
+        } catch (e) {
+          return e.response.data
+        }
+      }
+      return { error: { message: 'Invalid Details!' } }
     }
   },
   {

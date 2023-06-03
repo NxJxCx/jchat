@@ -1,13 +1,39 @@
-import { useState } from 'react'
-import { Form } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Form, useActionData, useNavigate } from 'react-router-dom'
 import './Signup.css'
 import * as Icon from 'react-bootstrap-icons'
-import axios from 'axios'
 import defaultphoto from './default_photo.jpg'
-import { uploadImage } from '../../api'
+import { isUserExists, uploadImage } from '../../api'
+import Swal from 'sweetalert2'
 // import Checkbox from '../Checkbox/Checkbox'
 
 export default function Signup() {
+  const action = useActionData()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (action) {
+      if (action.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Registered!',
+          text: action.success.message,
+          timer: 2000
+        }).then(() => {
+          navigate('/login', { redirect: true })
+        })
+      } else if (action.error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed to Register!',
+          text: action.error.message,
+          timer: 2000
+        })
+      }
+    }
+    
+  }, [action])
+  
   const [inputs, setInputs] = useState({
     username: '',
     password: '',
@@ -20,7 +46,7 @@ export default function Signup() {
     civilstatus: '',
     address: '',
     aboutme: '',
-    photo: '',
+    photo: '/default-profile.jpeg',
   })
   const [isInputValid, setInputValid] = useState({
     username: false,
@@ -29,7 +55,6 @@ export default function Signup() {
   })
   const [photoThumbnail, setPhotoThumbnail] = useState(defaultphoto)
   const [progressbar, setProgressbar] = useState()
-  const [inputPhoto, setInputPhoto] = useState()
   const [photouploader, setPhotoUploader] = useState()
 
   const setInputCallback = (e) => {
@@ -100,11 +125,7 @@ export default function Signup() {
             invalidCheck.classList.add('d-none')
           }
         } else {
-          axios.get(
-            process.env.NODE_ENV === 'development'
-            ? `http://${window.location.hostname}:3080/api/users?query=exists&username=${input.value}`
-            : `${window.location.origin}/api/users?query=exists&username=${input.value}`
-          ).then(resp => {
+          isUserExists(input.value).then(resp => {
             const result = resp.data;
             if (result) {
               setInputValid(prev => Object.assign({}, {...prev, username: false}))
@@ -167,13 +188,13 @@ export default function Signup() {
           const password = input.parentNode.parentNode.querySelector('input[name="password"]').value;
           const rpass = input.value;
           if (password !== rpass) {
-            setInputValid(prev => Object.assign({}, {...prev, password: false}))
+            setInputValid(prev => Object.assign({}, {...prev, rpass: false}))
             if (![...validCheck.classList].includes('d-none')) {
               validCheck.classList.add('d-none')
             }
             invalidCheck.classList.remove('d-none')
           } else {
-            setInputValid(prev => Object.assign({}, {...prev, password: true}))
+            setInputValid(prev => Object.assign({}, {...prev, rpass: true}))
             if (![...invalidCheck.classList].includes('d-none')) {
               invalidCheck.classList.add('d-none')
             }
@@ -212,7 +233,7 @@ export default function Signup() {
         return
       }
       if (success) {
-        inputPhoto.value = success.files[0].filepath
+        setInputs(prev => Object.assign({}, {...prev, photo: success.files[0].filepath}))
         setPhotoThumbnail(success.files[0].filepath)
       }
     })
@@ -237,6 +258,7 @@ export default function Signup() {
           </div>
           <div className="row w-100">
             <div className='col-6 text-center ps-5 pe-3'>
+              <input type="hidden" name="isvalidform" value={JSON.stringify(isInputValid)} />
               <div className="signup-form">
                 <label className="username" htmlFor="username">
                   <input type="text" name="username" placeholder="Username" onChange={setInputCallback} value={inputs.username} required />
@@ -257,7 +279,7 @@ export default function Signup() {
               <div className="form-group container">
                 <img className="img-thumbnail" src={photoThumbnail} style={{width: '10em', height: '10em'}}alt='profile' />
                 <input type="file" className="form-control visually-hidden" name="photoupload" ref={setPhotoUploader} onChange={handleFileUpload} />
-                <input type="hidden" name="photo" value={inputs.photo} ref={setInputPhoto} />
+                <input type="hidden" name="photo" value={inputs.photo} />
                 <div className="progress mx-auto d-none" style={{ height: '0.3em', width: '12.5em'}} role="progressbar" aria-label="Upload Progress">
                   <div className="progress-bar bg-success" ref={setProgressbar} style={{width: '0%'}}></div>
                 </div>
