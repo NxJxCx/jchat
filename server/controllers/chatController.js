@@ -91,6 +91,17 @@ export const getChatData = async (req, res, next) => {
         if (!chatdocs) {
           return res.json({ success: { data: [], message: 'No Users Found', length: 0 }})
         }
+        for (let i = 0; i < chatdocs.length; i++) {
+          let j = chatdocs[i].users.filter(v => v._id.toString() !== from_user).pop()
+          if (j) {
+            let result = await User.findById(j)
+            chatdocs[i].username = result.username
+            chatdocs[i].photo = result.photo
+            chatdocs[i].aboutme = result.aboutme
+            chatdocs[i].dateonline = result.dateonline
+          }
+        }
+        
         return res.json({ success: {
           data: [...chatdocs],
           message: `${chatdocs.length} Chat Conversations Found`,

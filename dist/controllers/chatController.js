@@ -153,6 +153,16 @@ const getChatData = async (req, res, next) => {
               }
             });
           }
+          for (let i = 0; i < chatdocs.length; i++) {
+            let j = chatdocs[i].users.filter(v => v._id.toString() !== from_user).pop();
+            if (j) {
+              let result = await _models.User.findById(j);
+              chatdocs[i].username = result.username;
+              chatdocs[i].photo = result.photo;
+              chatdocs[i].aboutme = result.aboutme;
+              chatdocs[i].dateonline = result.dateonline;
+            }
+          }
           return res.json({
             success: {
               data: [...chatdocs],

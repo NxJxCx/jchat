@@ -10,6 +10,9 @@ const API_URL = {
     exists: (username) => process.env.NODE_ENV === 'development'
             ? `http://${window.location.hostname}:3080/api/users?query=exists&username=${username}`
             : `/api/users?query=exists&username=${username}`,
+    userById: (userid) => process.env.NODE_ENV === 'development'
+                ? `http://${window.location.hostname}:3080/api/users?query=userid&userid=${userid}`
+                : `/api/users?query=userid&userid=${userid}`,
     searchUser: (search) => process.env.NODE_ENV === 'development'
                 ? `http://${window.location.hostname}:3080/api/users?query=search&search=${search}`
                 : `/api/users?query=search&search=${search}`,
@@ -45,6 +48,8 @@ export const loginUser = (username, password) => axios.post(API_URL.login, { use
 export const signupUser = (username, password, firstname, middlename, lastname, birthday, gender, civilstatus, address, aboutme, photo) => axios.post(API_URL.signup, { username, password, firstname, middlename, lastname, birthday, gender, civilstatus, address, aboutme, photo })
 
 export const isUserExists = (username) => axios.get(API_URL.exists(username))
+
+export const getUserById = (userid) => axios.get(API_URL.userById(userid))
 
 export const getUsersBySearch = (search) => axios.get(API_URL.searchUser(search))
 

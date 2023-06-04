@@ -29,6 +29,7 @@ const server = http.createServer(app);
 
 server.listen(port, () => {
   console.log(`App listening on PORT ${port}`);
+  console.log(`Localhost: http://localhost:${port}/`);
 });
 
 server.on('error', onError);

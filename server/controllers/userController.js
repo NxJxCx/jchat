@@ -58,7 +58,7 @@ export const loginUser = async (req, res, next) => {
 }
 
 export const getUserByQuery = async (req, res, next) => {
-  const { query, username, search } = req.query ? req.query : {}
+  const { query, userid, username, search } = req.query ? req.query : {}
   try {
     switch (query) {
       case 'exists': {
@@ -73,10 +73,21 @@ export const getUserByQuery = async (req, res, next) => {
           return res.status(500).json({ error: 'Invalid Request!'})
         }
       }
+      case 'userid': {
+        if (!userid) {
+          return res.status(403).json('Invalid Request!')
+        }
+        const result = await User.findById(userid).select({ username: 1, firstname: 1, middlename: 1, lastname: 1, birthday: 1, gender: 1, civilstatus: 1, address: 1, aboutme: 1, photo: 1, dateonline: 1 })
+        if (result) {
+          return res.json(result)
+        } else {
+          return res.json(null)
+        }
+      }
       case 'search': {
         if (typeof(search) === 'string' && search.trim() !== '') {
           const searchTrimmed = search.trim()
-          const results = await Promise.all([await User.find({ username: { $regex: searchTrimmed, $options: 'i' } }).select({ _id: 0, username: 1, firstname: 1, middlename: 1, lastname: 1, gender: 1, civilstatus: 1, photo: 1}), await User.find({ firstname: { $regex: searchTrimmed, $options: 'i' } }).select({ _id: 0, username: 1, firstname: 1, middlename: 1, lastname: 1, gender: 1, civilstatus: 1, photo: 1}), await User.find({ middlename: { $regex: searchTrimmed, $options: 'i' } }).select({ _id: 0, username: 1, firstname: 1, middlename: 1, lastname: 1, gender: 1, civilstatus: 1, photo: 1}), await User.find({ lastname: { $regex: searchTrimmed, $options: 'i' } }).select({ _id: 0, username: 1, firstname: 1, middlename: 1, lastname: 1, gender: 1, civilstatus: 1, photo: 1})])
+          const results = await Promise.all([await User.find({ username: { $regex: searchTrimmed, $options: 'i' } }).select({ _id: 0, username: 1, firstname: 1, middlename: 1, lastname: 1, gender: 1, civilstatus: 1, aboutme: 1, photo: 1, dateonline: 1 }), await User.find({ firstname: { $regex: searchTrimmed, $options: 'i' } }).select({ _id: 0, username: 1, firstname: 1, middlename: 1, lastname: 1, gender: 1, civilstatus: 1, aboutme: 1, photo: 1}), await User.find({ middlename: { $regex: searchTrimmed, $options: 'i' } }).select({ _id: 0, username: 1, firstname: 1, middlename: 1, lastname: 1, gender: 1, civilstatus: 1, aboutme: 1, photo: 1, dateonline: 1 }), await User.find({ lastname: { $regex: searchTrimmed, $options: 'i' } }).select({ _id: 0, username: 1, firstname: 1, middlename: 1, lastname: 1, gender: 1, civilstatus: 1, aboutme: 1, photo: 1, dateonline: 1 })])
           const result = []
           results.flat().forEach(v => {
             if (!result.includes(v)) {
@@ -92,7 +103,7 @@ export const getUserByQuery = async (req, res, next) => {
         if (!username) {
           return res.status(403).json('Invalid Request!')
         }
-        const result = await User.findOne({ username }).select({ _id: 0, username: 1, firstname: 1, middlename: 1, lastname: 1, birthday: 1, gender: 1, civilstatus: 1, address: 1, aboutme: 1, photo: 1 })
+        const result = await User.findOne({ username }).select({ _id: 0, username: 1, firstname: 1, middlename: 1, lastname: 1, birthday: 1, gender: 1, civilstatus: 1, address: 1, aboutme: 1, photo: 1, dateonline: 1})
         if (result) {
           return res.json(result)
         } else {

@@ -88,9 +88,17 @@ const router = createBrowserRouter([
     }
   },
   {
+    path: '/logout',
+    exact: true,
+    loader: () => {
+      window.localStorage.removeItem('logininfo')
+      return redirect('/login')
+    }
+  },
+  {
     path: '/',
     element: <Chat />,
-    loader: () => {
+    loader: async () => {
       const logininfo = window.localStorage.getItem('logininfo')
       return !logininfo ? redirect('/login') : { logininfo: JSON.parse(logininfo) }
     }

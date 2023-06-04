@@ -14,6 +14,22 @@
   min-width: 2.5em;
 }
 
+.chat-contact.online {
+  position:relative;
+}
+
+.chat-contact.online::after {
+  content: " ";
+  position: absolute;
+  width: 0.6rem;
+  height: 0.6rem;
+  background-color: rgb(29, 213, 4);
+  border-radius: 10em;
+  bottom: 18.8%;
+  left: 5.8%;
+  z-index: 2;
+}
+
 .chat-contact.selected {
   margin-left: 0.4em;
   width: calc(100% - 0.5em);
@@ -28,10 +44,10 @@
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(3, 3, 39, 0.963);
+  background-color: #0d0b13d6;
   border-radius: 5em 0 0 5em;
   transform-origin: top left;
-  transform: scaleX(1.07);
+  transform: scaleX(1.075);
 }
 
 .chat-contact .chat-contact-details {

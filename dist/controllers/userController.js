@@ -128,6 +128,7 @@ exports.loginUser = loginUser;
 const getUserByQuery = async (req, res, next) => {
   const {
     query,
+    userid,
     username,
     search
   } = req.query ? req.query : {};
@@ -150,6 +151,30 @@ const getUserByQuery = async (req, res, next) => {
             });
           }
         }
+      case 'userid':
+        {
+          if (!userid) {
+            return res.status(403).json('Invalid Request!');
+          }
+          const result = await _models.User.findById(userid).select({
+            username: 1,
+            firstname: 1,
+            middlename: 1,
+            lastname: 1,
+            birthday: 1,
+            gender: 1,
+            civilstatus: 1,
+            address: 1,
+            aboutme: 1,
+            photo: 1,
+            dateonline: 1
+          });
+          if (result) {
+            return res.json(result);
+          } else {
+            return res.json(null);
+          }
+        }
       case 'search':
         {
           if (typeof search === 'string' && search.trim() !== '') {
@@ -167,7 +192,9 @@ const getUserByQuery = async (req, res, next) => {
               lastname: 1,
               gender: 1,
               civilstatus: 1,
-              photo: 1
+              aboutme: 1,
+              photo: 1,
+              dateonline: 1
             }), await _models.User.find({
               firstname: {
                 $regex: searchTrimmed,
@@ -181,6 +208,7 @@ const getUserByQuery = async (req, res, next) => {
               lastname: 1,
               gender: 1,
               civilstatus: 1,
+              aboutme: 1,
               photo: 1
             }), await _models.User.find({
               middlename: {
@@ -195,7 +223,9 @@ const getUserByQuery = async (req, res, next) => {
               lastname: 1,
               gender: 1,
               civilstatus: 1,
-              photo: 1
+              aboutme: 1,
+              photo: 1,
+              dateonline: 1
             }), await _models.User.find({
               lastname: {
                 $regex: searchTrimmed,
@@ -209,7 +239,9 @@ const getUserByQuery = async (req, res, next) => {
               lastname: 1,
               gender: 1,
               civilstatus: 1,
-              photo: 1
+              aboutme: 1,
+              photo: 1,
+              dateonline: 1
             })]);
             const result = [];
             results.flat().forEach(v => {
@@ -242,7 +274,8 @@ const getUserByQuery = async (req, res, next) => {
             civilstatus: 1,
             address: 1,
             aboutme: 1,
-            photo: 1
+            photo: 1,
+            dateonline: 1
           });
           if (result) {
             return res.json(result);
