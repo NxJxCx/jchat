@@ -14,7 +14,7 @@ export default function ChatMessageContent({ name='', profilephoto=`http://${win
           ? <div className="bubble-chat-message">
           {message.trim().split('\n').map(v => <>{v}<span style={{whiteSpace: 'pre-line'}}></span></>)}
           </div>
-          : <div className="photos-container mx-4 px-3">{photos.length > 0 ? Array.from({ length: Math.min(photos.length, 4) }).fill(false).map((_, i) => <div key={`photoschat_${i}`} type="button" className="photo-gallery border border-dark border-2" alt="Sent photos" style={{backgroundImage: `url(http://${window.location.hostname}${process.env.NODE_ENV === 'development' ? ':3080' : ''}/${photos[i]})`}} onClick={() => handlePhotos(i)}></div>) : undefined}</div> }
+          : <div className="photos-container mx-4 px-3">{photos.length > 0 ? Array.from({ length: Math.min(photos.length, 4) }).fill(false).map((_, i) => <div key={`photoschat_${i}`} type="button" className="photo-gallery border border-dark border-2" alt="Sent photos" style={{backgroundImage: `url(http://${window.location.hostname}:${process.env.NODE_ENV === 'development' ? '3080' : window.location.port}/${photos[i]})`}} onClick={() => handlePhotos(i)}></div>) : undefined}</div> }
       </div>
       { !previous ?
         <div className="chat-time">

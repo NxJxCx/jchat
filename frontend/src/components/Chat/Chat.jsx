@@ -186,7 +186,7 @@ export default function Chat() {
               <div className="col col-chat col-chat-contacts overflow-auto">
                 <ChatContactGroup data={Object.keys(userContacts).map(key =>
                   key === "chats"
-                    ? userContacts[key].map(v => Object.assign({}, { chatid: v._id.toString(), username: v.username, name: v.name, message: v.latestUpdate.message, time: new Date(v.latestUpdate.timestamp), profilephoto: `http://${window.location.hostname}:${process.env.NODE_ENV === 'development' ? '3080' : ''}${v.photo}`, isonline: (new Date(v.dateonline)).getTime() + (1000 * 60 * 10) > Date.now() }))
+                    ? userContacts[key].map(v => Object.assign({}, { chatid: v._id.toString(), username: v.username, name: v.name, message: v.latestUpdate.message, time: new Date(v.latestUpdate.timestamp), profilephoto: `http://${window.location.hostname}:${process.env.NODE_ENV === 'development' ? '3080' : window.location.port}${v.photo}`, isonline: (new Date(v.dateonline)).getTime() + (1000 * 60 * 10) > Date.now() }))
                     : (key === "users"
                         ? userContacts[key].map(v => Object.assign({}, { username: v.username, name: `${v.firstname} ${v.lastname}`, profilephoto: v.photo, aboutme: v.aboutme, isonline: (new Date(v.dateonline)).getTime() + (1000 * 60 * 10) > Date.now() }))
                         : [])

@@ -17,7 +17,7 @@ export default function ChatConversation({ chatid, userid, username }) {
       width: '100%',
       height: '100%',
       background: '#030821be',
-      html:`<img src="http://${window.location.hostname}${process.env.NODE_ENV === 'development' ? ':3080' : ''}${photo}" class="img-thumbnail img-fluid" />`
+      html:`<img src="http://${window.location.hostname}:${process.env.NODE_ENV === 'development' ? '3080' : window.location.port}${photo}" class="img-thumbnail img-fluid" />`
     })
   }
 
@@ -93,7 +93,7 @@ export default function ChatConversation({ chatid, userid, username }) {
             const newdata = success.data.reverse().map((v, i, dt) => {
                 const isphotosnext = i < dt.length - 1 ? dt[i+1].photos.length > 0 : false
                 const name = v.senderid.toString() === myUser._id.toString() ? `${myUser.firstname} ${myUser.lastname}` : (v.senderid.toString() === otherUser._id.toString() ? `${otherUser.firstname} ${otherUser.lastname}` : '')
-                const profilephoto = v.senderid.toString() === myUser._id.toString() ? `http://${window.location.hostname}${process.env.NODE_ENV === 'development' ? ':3080' : ''}${myUser.photo}` : (v.senderid.toString() === otherUser._id.toString() ? `http://${window.location.hostname}${process.env.NODE_ENV === 'development' ? ':3080' : ''}${otherUser.photo}` : '')
+                const profilephoto = v.senderid.toString() === myUser._id.toString() ? `http://${window.location.hostname}:${process.env.NODE_ENV === 'development' ? '3080' : window.location.port}${myUser.photo}` : (v.senderid.toString() === otherUser._id.toString() ? `http://${window.location.hostname}:${process.env.NODE_ENV === 'development' ? '3080' : ''}${otherUser.photo}` : window.location.port)
                 const previous = i < dt.length - 1 ? v.senderid.toString() === dt[i+1].senderid.toString() && (v.photos.length === 0 || !isphotosnext) : false
                 const right = v.senderid.toString() === myUser._id.toString()
                 return {
