@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_URL = {
+export const API_URL = {
     login: process.env.NODE_ENV === 'development'
             ? `http://${window.location.hostname}:3080/api/users/login`
             : '/api/users/login',
@@ -10,6 +10,9 @@ const API_URL = {
     exists: (username) => process.env.NODE_ENV === 'development'
             ? `http://${window.location.hostname}:3080/api/users?query=exists&username=${username}`
             : `/api/users?query=exists&username=${username}`,
+    onlinestatus: (userid) => process.env.NODE_ENV === 'development'
+                    ? `http://${window.location.hostname}:3080/api/users/${userid}/updateonlinestatus`
+                    : `/${userid}/updateonlinestatus`,
     userById: (userid) => process.env.NODE_ENV === 'development'
                 ? `http://${window.location.hostname}:3080/api/users?query=userid&userid=${userid}`
                 : `/api/users?query=userid&userid=${userid}`,
@@ -34,6 +37,9 @@ const API_URL = {
     searchChat: (userid, to_user_search) => process.env.NODE_ENV === 'development'
                 ? `http://${window.location.hostname}:3080/api/chat?query=search&from_user=${userid}&to_user=${to_user_search}`
                 : `/api/chat?query=search&from_user=${userid}&to_user=${to_user_search}`,
+    chatUsername: (userid, username) => process.env.NODE_ENV === 'development'
+                    ? `http://${window.location.hostname}:3080/api/chat?query=username&from_user=${userid}&to_user=${username}`
+                    : `/api/chat?username=${userid}&to_user=${username}`,
     chatData: (userid) => process.env.NODE_ENV === 'development'
                 ? `http://${window.location.hostname}:3080/api/chat?query=chatids&from_user=${userid}`
                 : `/api/chat?query=chatids&from_user=${userid}`,
@@ -48,6 +54,8 @@ export const loginUser = (username, password) => axios.post(API_URL.login, { use
 export const signupUser = (username, password, firstname, middlename, lastname, birthday, gender, civilstatus, address, aboutme, photo) => axios.post(API_URL.signup, { username, password, firstname, middlename, lastname, birthday, gender, civilstatus, address, aboutme, photo })
 
 export const isUserExists = (username) => axios.get(API_URL.exists(username))
+
+export const updateOnlineStatus = (userid) => axios.put(API_URL.onlinestatus(userid))
 
 export const getUserById = (userid) => axios.get(API_URL.userById(userid))
 
@@ -65,11 +73,13 @@ export const getChatConversation = (chatid, userid) => axios.get(API_URL.convers
 
 export const getChatSearchData = (userid, to_user_search) => axios.get(API_URL.searchChat(userid, to_user_search))
 
+export const getChatByUsername = (userid, username) => axios.get(API_URL.chatUsername(userid, username))
+
 export const getChatData = (userid) => axios.get(API_URL.chatData(userid))
 
-export const sendChatMessage = (from_userid, to_username, message) => axios.post(API_URL.sendChat, { from_userid, to_username, message })
+export const sendChatMessage = ({chatid, from_userid, to_username, message}) => axios.post(API_URL.sendChat, { chatid, from_userid, to_username, message })
 
-export const sendChatPhoto = (from_userid, to_username, photos=[]) => axios.post(API_URL.sendChat, { from_userid, to_username, photos })
+export const sendChatPhoto = ({chatid, from_userid, to_username, photos=[]}) => axios.post(API_URL.sendChat, { chatid, from_userid, to_username, photos })
 
 export const uploadImage = ({ formData, userid, file, filename, forProfile=false, onUploadProgress=(ev)=>{ console.log("EV", ev) } }) => {
     const data = formData ? formData : new FormData()

@@ -30,7 +30,7 @@ const ChatSchema = new Schema({
     ],
     default: []
   },
-  lastestUpdate: {
+  latestUpdate: {
     timestamp: {
       type: Date
     },

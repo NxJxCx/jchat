@@ -47,7 +47,7 @@ const ChatSchema = new _mongoose.Schema({
     }],
     default: []
   },
-  lastestUpdate: {
+  latestUpdate: {
     timestamp: {
       type: Date
     },

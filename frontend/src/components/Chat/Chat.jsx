@@ -1,60 +1,96 @@
 import { useState, useEffect } from 'react'
-import { NavLink, useLoaderData } from 'react-router-dom'
+import { NavLink, useLoaderData, Outlet, useNavigate } from 'react-router-dom'
 import * as Icons from 'react-bootstrap-icons'
 import './Chat.css'
 import ChatContactGroup from '../ChatContact/ChatContactGroup'
-import ChatConversation from '../ChatConversation/ChatConversation'
-import { getUsersBySearch, getUserById, getChatSearchData, getChatData } from '../../api'
+
+import { getUsersBySearch, getUserById, getChatSearchData, getChatData, updateOnlineStatus, getChatConversation } from '../../api'
 
 export default function Chat() {
-
-  
   const { logininfo } = useLoaderData()
+  const navigate = useNavigate()
   const [myUser, setMyUser] = useState(null)
   const [userContacts, setUserContacts] = useState({})
-  const [selectedConversation, setUserConversation] = useState({
-    chatid: undefined,
-    userid: logininfo ? logininfo.userid : undefined,
-    username: undefined,
-  });
+  const [initContactIndex, setInitContactIndex] = useState(-1)
+  
   const [searchName, setSearchName] = useState('')
 
   useEffect(() => {
-    logininfo && setUserConversation(prev => Object.assign({}, {...prev, userid: logininfo.userid }))
+    window.addEventListener("focus", () => {
+      updateOnlineStatus(logininfo.userid)
+      .catch(err => console.log(err));
+    }, false)
   }, [logininfo])
 
   useEffect(() => {
-    if (myUser === null && selectedConversation.userid) {
-      getUserById(selectedConversation.userid)
+    if (myUser === null) {
+      getUserById(logininfo.userid)
       .then(resp => new Promise(res => res(resp.data)))
       .then(setMyUser)
       .catch(error => { setMyUser(null); console.log(error) })
     }
-  }, [selectedConversation, myUser])
+  }, [myUser, logininfo.userid])
 
   useEffect(() => {
-    if (selectedConversation.userid) {
+    if (logininfo.userid) {
       if (searchName.length > 0) {
-        getChatSearchData(selectedConversation.userid, searchName)
+        getChatSearchData(logininfo.userid, searchName)
         .then(resp => new Promise(res=> res(resp.data.success)))
-        .then(success=> new Promise(res=> res(setUserContacts({ chats: [...success.data], users: [] }))))
+        .then(success=> new Promise(async (res)=> {
+          const resultdata = []
+          for (let i = 0; i < success.data.length; i++) {
+            let v = success.data[i]
+            const otherid = v.users.filter(vf => vf._id.toString() !== logininfo.userid).pop()._id.toString()
+            const resp = await getUserById(otherid)
+            const rs = resp.data
+            resultdata.push({...v, name: rs.firstname + ' ' + rs.lastname, username: rs.username, photo: rs.photo, dateonline: rs.dateonline })
+          }
+          res(setUserContacts({ chats: [...resultdata], users: [] }))
+        }))
         .then(() => getUsersBySearch(searchName))
         .then(resp => new Promise(res=>res(resp.data)))
         .then(dt => setUserContacts({ users: [...dt], chats: [...userContacts.chats] }))
         .catch(error => { setUserContacts({ chats: [], users: [] }); console.log(error) })
         
       } else {
-        getChatData(selectedConversation.userid)
+        getChatData(logininfo.userid)
         .then(resp => new Promise(res=> res(resp.data.success)))
-        .then(success => { setUserContacts({ chats: [...success.data], users: [] }); setTimeout(() => setUserContacts({ chats: [...success.data], users: [] }), 300); })
+        .then(async (success) => {
+          if (success.data.length > 0) {
+            if (window.location.pathname === '/' || (window.location.pathname.substring(0, 6) === '/chat/' && window.location.pathname.substring(6, 13) === 'message/')) {
+              navigate('/chat/' + success.data[0]._id.toString())
+            } else {
+              success.data.forEach((v, i)=> {
+                if (v._id.toString() === window.location.pathname.substring(6, 24+6)) {
+                  setInitContactIndex(i)
+                }
+              })
+            }
+          }
+          const resultdata = []
+          for (let i = 0; i < success.data.length; i++) {
+            let v = success.data[i]
+            const otherid = v.users.filter(vf => vf._id.toString() !== logininfo.userid).pop()._id.toString()
+            const resp = await getUserById(otherid)
+            const rs = resp.data
+            resultdata.push({...v, name: rs.firstname + ' ' + rs.lastname, username: rs.username, photo: rs.photo, dateonline: rs.dateonline })
+          }
+          setUserContacts({ chats: [...resultdata], users: [] }); setTimeout(() => setUserContacts({ chats: [...resultdata], users: [] }), 300);
+        })
         .catch(error => { setUserContacts({ chats: [], users: [] }); console.log(error) })
       }
     }
-  }, [searchName]);
+  }, [searchName, logininfo.userid]);
 
-  const handleSelectChatContact = ({ chatid, username, name, index }) => {
-    if (!chatid) {
-
+  const handleSelectChatContact = ({ chatid, username, name, aboutme, isonline, index }) => {
+    if (chatid) {
+      setSearchName('')
+      navigate('/chat/' + chatid)
+    } else {
+      if (username) {
+        setSearchName('')
+        navigate('/chat/message/' + username)
+      }
     }
   }
 
@@ -68,10 +104,10 @@ export default function Chat() {
               <div className="col">
                 <div className="profile-info-self-container">
                   <div className="profile-info-self online">
-                    <img className="img-thumbnail img-fluid" src={`http://${window.location.hostname}:${process.env.NODE_ENV === 'development' ? '3080' : window.location.port}/default-profile.jpg`} style={{width: '2.5em', height: '2.5em'}} alt="Neil Jason Canete" />
+                    <img className="img-thumbnail img-fluid" src={`http://${window.location.hostname}:${process.env.NODE_ENV === 'development' ? '3080' : window.location.port}${myUser ? myUser.photo : '/default-photo.jpg'}`} style={{width: '2.5em', height: '2.5em'}} alt="Neil Jason Canete" />
                     <div className="profile-info-name">
-                      Neil Jason
-                      <span>Secretary</span>
+                      {myUser && `${myUser.firstname} ${myUser.lastname}`}
+                      <span>{myUser && myUser.aboutme}</span>
                     </div>
                   </div>
                   <div className="btn-group dropend">
@@ -93,49 +129,18 @@ export default function Chat() {
               <div className="col col-chat col-chat-contacts overflow-auto">
                 <ChatContactGroup data={Object.keys(userContacts).map(key =>
                   key === "chats"
-                    ? userContacts[key].map(v => Object.assign({}, { chatid: v._id.toString(), username: v.username, name: v.lastUpdate.sendername, message: v.lastUpdate.message, time: v.lastUpdate.timestamp, profilephoto: v.photo, online: v.dateonline }))
+                    ? userContacts[key].map(v => Object.assign({}, { chatid: v._id.toString(), username: v.username, name: v.name, message: v.latestUpdate.message, time: new Date(v.latestUpdate.timestamp), profilephoto: `http://${window.location.hostname}:${process.env.NODE_ENV === 'development' ? '3080' : ''}${v.photo}`, isonline: (new Date(v.dateonline)).getTime() + (1000 * 60 * 10) > Date.now() }))
                     : (key === "users"
-                        ? userContacts[key].map(v => Object.assign({}, { username: v.username, name: `${v.firstname} ${v.lastname}`, profilephoto: v.photo, aboutme: v.aboutme, online: v.dateonline }))
+                        ? userContacts[key].map(v => Object.assign({}, { username: v.username, name: `${v.firstname} ${v.lastname}`, profilephoto: v.photo, aboutme: v.aboutme, isonline: (new Date(v.dateonline)).getTime() + (1000 * 60 * 10) > Date.now() }))
                         : [])
-                  ).flat()}
-                  onSelect={handleSelectChatContact} />
+                  ).flat().reduce((unique, item) => unique.filter(v => v.username === item.username).length > 0 ? unique : [...unique, item], [])}
+                  initialSelectedIndex={initContactIndex} onSelect={handleSelectChatContact} />
               </div>
             </div>
           </div>
         </div>
         <div className="col border-end border-top border-bottom rounded-end-4 p-0 bg-conversation">
-          <div className="container-fluid overflow-auto col-chat pt-3">
-            <div className="row justify-content-between mb-3">
-              <div className="col-auto">
-                <div className="profile-info-self online">
-                  <img className="img-thumbnail img-fluid" src={`http://${window.location.hostname}:${process.env.NODE_ENV === 'development' ? '3080' : window.location.port}/default-profile.jpg`} style={{width: '2.5em', height: '2.5em'}} alt="Neil Jason Canete" />
-                  <div className="profile-info-name">
-                    Neil Jason
-                    <span className="opacity-50 text-white">Secretary</span>
-                  </div>
-                </div>
-              </div>
-              <div className="col-4 d-flex justify-content-end align-items-center px-4">
-                <Icons.Telephone className='me-3'/>
-                <Icons.PersonAdd />
-              </div>
-            </div>
-            <div className="chat-convo-container">
-              <div className="conversation-container">
-                <ChatConversation {...selectedConversation} />
-              </div>
-              <div className="send-message-container">
-                <button type="button" className="btn btn-outline-none text-white" style={{fontSize: '5mm'}}>
-                  <Icons.Images />
-                </button>
-                <textarea className="form-control mx-3 mt-3 rounded-4 text-white" placeholder='Type your Message...' />
-                <button type="submit" className="btn btn-outline-none text-warning">
-                  <Icons.Send style={{transform: 'rotate(45deg)', fontSize: '7mm'}} />
-                </button>
-              </div>
-            </div>
-            
-          </div>
+          <Outlet />
         </div>
       </div>
     </div>

@@ -24,7 +24,7 @@ function initializeChat(userIdA, userIdB) {
             seenLatest: false
           }],
           conversation: [],
-          lastestUpdate: {},
+          latestUpdate: {},
           lastUpdated: 0
         });
         newchat.save().then(doc => {
@@ -111,11 +111,14 @@ const getChatData = async (req, res, next) => {
           chatdoc.users[myuserindex].seenLatest = true;
           await chatdoc.save();
           const sortedConversation = [...chatdoc.conversation].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+          const result = await _models.User.findById(chatdoc.users[1 - myuserindex]._id.toString());
           return res.json({
             success: {
               data: sortedConversation,
               message: 'Chat Conversation Received!',
-              chatid: chatdoc._id
+              chatid: chatdoc._id,
+              users: [...chatdoc.users],
+              name: result.firstname + ' ' + result.lastname
             }
           });
         }
@@ -157,6 +160,7 @@ const getChatData = async (req, res, next) => {
             let j = chatdocs[i].users.filter(v => v._id.toString() !== from_user).pop();
             if (j) {
               let result = await _models.User.findById(j);
+              chatdocs[i].name = result.firstname + ' ' + result.lastname;
               chatdocs[i].username = result.username;
               chatdocs[i].photo = result.photo;
               chatdocs[i].aboutme = result.aboutme;
@@ -201,6 +205,37 @@ const getChatData = async (req, res, next) => {
               length: chatdocs.length
             }
           });
+        }
+      case 'username':
+        {
+          if (!from_user && !to_user) {
+            return res.status(403).json('Invalid Request!');
+          }
+          const user = await _models.User.findOne({
+            username: to_user
+          }).select('username');
+          if (!user) {
+            return res.status(403).json('User Not Found!');
+          }
+          const chatdoc = await _models.Chat.findOne({
+            'users._id': {
+              $all: [from_user, user._id.toString()]
+            },
+            lastUpdated: {
+              $gt: 0
+            }
+          }).select('users latestUpdate').sort({
+            lastUpdated: -1
+          });
+          if (!chatdoc) {
+            return res.json(null);
+          }
+          chatdoc.name = user.firstname + ' ' + user.lastname;
+          chatdoc.username = user.username;
+          chatdoc.photo = user.photo;
+          chatdoc.aboutme = user.aboutme;
+          chatdoc.dateonline = user.dateonline;
+          return res.json(chatdoc);
         }
       default:
         return res.status(403).json('Invalid Request!');

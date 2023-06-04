@@ -1,17 +1,9 @@
-import { useState, useEffect } from 'react'
 import './ChatContact.css'
 
-export default function ChatContact({ chatid='', username='', name='', profilephoto=`http://${window.location.hostname}:${process.env.NODE_ENV === 'development' ? '3080' : window.location.port}/default-profile.jpg`, time=new Date(), message='', aboutme='', online=new Date(), selected=false, onClick=(e) => { console.log(chatid, e) }, ...props}) {
-
-  const [isOnline, setIsOnline] = useState(false)
-
-  useEffect(() => {
-    const interval = setInterval(() => setIsOnline(online instanceof Date && online.getTime() > Date.now()), 3000);
-    return () => { clearInterval(interval); }
-  }, [online])
+export default function ChatContact({ chatid='', username='', name='', profilephoto=`http://${window.location.hostname}:${process.env.NODE_ENV === 'development' ? '3080' : window.location.port}/default-profile.jpg`, time=new Date(), message='', aboutme='', isonline=false, selected=false, onClick=(e) => { console.log(chatid, e) }, ...props}) {
 
   return (<>
-    <div className={`chat-contact${selected ? ' selected' : ''}${isOnline ? ' online' : ''}`}>
+    <div className={`chat-contact${selected ? ' selected' : ''}${isonline ? ' online' : ''}`}>
       <img className="img-thumbnail img-fluid" src={profilephoto} style={{width: '2.5em', height: '2.5em'}} alt={name} />
       <div className='chat-contact-details'>
         <div className="contact-name">
@@ -26,7 +18,7 @@ export default function ChatContact({ chatid='', username='', name='', profileph
             : aboutme }
         </div>
       </div>
-      <button type="button" className="contact-button-transparent" onClick={onClick} data-chatid={chatid} data-username={username} data-name={name} {...props} />
+      <button type="button" className="contact-button-transparent" onClick={onClick} {...props} />
     </div>
   </>)
 }

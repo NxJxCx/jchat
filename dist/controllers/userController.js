@@ -37,12 +37,12 @@ const signupUser = async (req, res, next) => {
       _id: _id ? _id.trim() : undefined,
       username: username.trim(),
       password: password_hash,
-      firstname: firstname.trim()[0].toUpperCase() + firstname.trim().substring(1).toLowerCase(),
-      middlename: middlename ? middlename.trim()[0].toUpperCase() + middlename.trim().substring(1).toLowerCase() : undefined,
-      lastname: lastname.trim()[0].toUpperCase() + lastname.trim().substring(1).toLowerCase(),
+      firstname: firstname.trim().split(' ').map(v => v[0].toUpperCase() + v.trim().substring(1).toLowerCase()).join(' '),
+      middlename: middlename ? middlename.trim().split(' ').map(v => v[0].toUpperCase() + v.trim().substring(1).toLowerCase()).join(' ') : undefined,
+      lastname: lastname.trim().split(' ').map(v => v[0].toUpperCase() + v.trim().substring(1).toLowerCase()).join(' '),
       birthday: mybirthday,
       gender: gender.trim()[0].toLowerCase() === 'f' ? 'Female' : 'Male',
-      civilstatus: civilstatus.trim()[0].toUpperCase() + civilstatus.trim().substring(1).toLowerCase(),
+      civilstatus: civilstatus.trim().split(' ').map(v => v[0].toUpperCase() + v.trim().substring(1).toLowerCase()).join(' '),
       address,
       aboutme,
       photo: photo.trim()
@@ -156,19 +156,7 @@ const getUserByQuery = async (req, res, next) => {
           if (!userid) {
             return res.status(403).json('Invalid Request!');
           }
-          const result = await _models.User.findById(userid).select({
-            username: 1,
-            firstname: 1,
-            middlename: 1,
-            lastname: 1,
-            birthday: 1,
-            gender: 1,
-            civilstatus: 1,
-            address: 1,
-            aboutme: 1,
-            photo: 1,
-            dateonline: 1
-          });
+          const result = await _models.User.findById(userid).select('username firstname middlename lastname birthday gender civilstatus address aboutme photo dateonline');
           if (result) {
             return res.json(result);
           } else {
@@ -263,20 +251,7 @@ const getUserByQuery = async (req, res, next) => {
           }
           const result = await _models.User.findOne({
             username
-          }).select({
-            _id: 0,
-            username: 1,
-            firstname: 1,
-            middlename: 1,
-            lastname: 1,
-            birthday: 1,
-            gender: 1,
-            civilstatus: 1,
-            address: 1,
-            aboutme: 1,
-            photo: 1,
-            dateonline: 1
-          });
+          }).select('username firstname middlename lastname birthday gender civilstatus address aboutme photo dateonline');
           if (result) {
             return res.json(result);
           } else {

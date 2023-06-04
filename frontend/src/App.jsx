@@ -3,8 +3,9 @@ import Swal from 'sweetalert2'
 import Login from './components/Login/Login'
 import Signup from './components/Signup/Signup'
 import Chat from './components/Chat/Chat'
-import { loginUser, uploadImage, signupUser } from './api'
+import { loginUser, uploadImage, signupUser, getUserById, getUserByUsername, getChatByUsername, getChatConversation } from './api'
 import TestUpload from './components/TestUpload'
+import ChatConversationContainer from './components/ChatConversation/ChatConversationContainer'
 
 const router = createBrowserRouter([
   {
@@ -101,7 +102,100 @@ const router = createBrowserRouter([
     loader: async () => {
       const logininfo = window.localStorage.getItem('logininfo')
       return !logininfo ? redirect('/login') : { logininfo: JSON.parse(logininfo) }
-    }
+    },
+    children: [
+      {
+        index: true,
+        element: <></>,
+      },
+      {
+        path: '/chat/:chatid',
+        element: <ChatConversationContainer />,
+        loader: async ({ params }) => {
+          const logininfo = window.localStorage.getItem('logininfo')
+          try {
+            if (logininfo && params.chatid) {
+              const chatid = params.chatid
+              const userid = JSON.parse(logininfo).userid
+              const resp = await getChatConversation(chatid, userid)
+              const { success } = resp.data
+              if (success) {
+                const otherid = success.users.filter(v => v._id.toString() !== userid).pop()._id.toString()
+                const resp2 = await getUserById(otherid)
+                const result2 = resp2.data
+                if (result2) {
+                  return {
+                    chatid: success.chatid.toString(),
+                    userid,
+                    otherid: result2._id.toString(),
+                    username: result2.username,
+                    firstname: result2.firstname,
+                    middlename: result2.middlename,
+                    lastname: result2.lastname,
+                    birthday: result2.birthday,
+                    gender: result2.gender,
+                    civilstatus: result2.civilstatus,
+                    address: result2.address,
+                    aboutme: result2.aboutme,
+                    dateonline: result2.dateonline,
+                    photo: result2.photo,
+                    navlocation: 'chat'
+                  }
+                }
+              }
+            }
+          } catch (err) {}
+          return redirect('/')
+        },
+        action: async ({ request }) => {
+          const fm = await request.formData()
+          console.log(Object.fromEntries(fm))
+          return {}
+        }
+      },
+      {
+        path: '/chat/message/:username',
+        element: <ChatConversationContainer />,
+        loader: async ({ params }) => {
+          const logininfo = window.localStorage.getItem('logininfo')
+          try {
+            if (logininfo && params.username) {
+              const userid = JSON.parse(logininfo).userid
+              const resp = await getUserByUsername(params.username)
+              const result =  resp.data
+              if (result) {
+                const resp2 = await getChatByUsername(userid, result.username)
+                const result2 = resp2.data
+                if (result2) {
+                  redirect('/chat/' + result2._id.toString())
+                } else {
+                  return {
+                    userid,
+                    otherid: result._id.toString(),
+                    username: result.username,
+                    firstname: result.firstname,
+                    middlename: result.middlename,
+                    lastname: result.lastname,
+                    birthday: result.birthday,
+                    gender: result.gender,
+                    address: result.address,
+                    aboutme: result.aboutme,
+                    photo: result.photo,
+                    dateonline: result.dateonline,
+                    navlocation: 'message'
+                  }
+                }
+              }
+            }
+          } catch (error) { }
+          return redirect('/')
+        },
+        action: async ({ request }) => {
+          const fm = await request.formData()
+          return {...Object.fromEntries(fm)}
+        }
+      }
+    ]
   },
   {
     path: '/testupload',

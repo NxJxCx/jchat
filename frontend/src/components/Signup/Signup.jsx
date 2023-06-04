@@ -46,7 +46,7 @@ export default function Signup() {
     civilstatus: '',
     address: '',
     aboutme: '',
-    photo: '/default-profile.jpeg',
+    photo: '/default-profile.jpg',
   })
   const [isInputValid, setInputValid] = useState({
     username: false,

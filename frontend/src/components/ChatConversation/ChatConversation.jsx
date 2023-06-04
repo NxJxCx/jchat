@@ -75,34 +75,39 @@ export default function ChatConversation({ chatid, userid, username }) {
   }, [chat_id, chatid, userid, myUser, otherUser])
 
   useEffect(() => {
-    if (chat_id && chat_id.length === 24) {
-      // get the chat conversation data
-      getChatConversation(chat_id, myUser._id.toString())
-      .then(resp => new Promise(res=>res(resp.data)))
-      .then(({success}) => success && chat_id === success.chatid.toString()
-        ? setData(success.data.map((v, i, dt) => {
-          const isphotosnext = i < dt.length - 1 ? dt[i+1].photos.length > 0 : false
-          const name = v.senderid.toString() === myUser._id.toString() ? `${myUser.firstname} ${myUser.lastname}` : (v.senderid.toString() === otherUser._id.toString() ? `${otherUser.firstname} ${otherUser.lastname}` : '')
-          const profilephoto = v.senderid.toString() === myUser._id.toString() ? myUser.photo : (v.senderid.toString() === otherUser._id.toString() ? otherUser.photo : '')
-          const previous = i < dt.length - 1 ? v.senderid.toString() === dt[i+1].senderid.toString() && (v.photos.length === 0 || !isphotosnext) : false
-          const right = data[i].senderid.toString() === myUser._id.toString()
-          return {
-            name,
-            profilephoto,
-            previous,
-            right,
-            message: dt[i].message,
-            time: new Date(dt[i].timestamp),
-            photos: [...dt[i].photos],
-            onClick: handleOpenPhotos,
-          }
-        }))
-        : (function(){throw new Error('Invalid chat data')})())
-      .catch(error => { setData([]); console.log(error) })
-    } else {
-      data.length > 0 && setData([])
+    const func = async () => {
+      if (chat_id && chat_id.length === 24) {
+        // get the chat conversation data
+        getChatConversation(chat_id, myUser._id.toString())
+        .then(resp => new Promise(res=>res(resp.data)))
+        .then(({success}) => success && chat_id === success.chatid.toString()
+          ? setData(success.data.map((v, i, dt) => {
+            const isphotosnext = i < dt.length - 1 ? dt[i+1].photos.length > 0 : false
+            const name = v.senderid.toString() === myUser._id.toString() ? `${myUser.firstname} ${myUser.lastname}` : (v.senderid.toString() === otherUser._id.toString() ? `${otherUser.firstname} ${otherUser.lastname}` : '')
+            const profilephoto = v.senderid.toString() === myUser._id.toString() ? myUser.photo : (v.senderid.toString() === otherUser._id.toString() ? otherUser.photo : '')
+            const previous = i < dt.length - 1 ? v.senderid.toString() === dt[i+1].senderid.toString() && (v.photos.length === 0 || !isphotosnext) : false
+            const right = data[i].senderid.toString() === myUser._id.toString()
+            return {
+              name,
+              profilephoto,
+              previous,
+              right,
+              message: dt[i].message,
+              time: new Date(dt[i].timestamp),
+              photos: [...dt[i].photos],
+              onClick: handleOpenPhotos,
+            }
+          }))
+          : (function(){throw new Error('Invalid chat data')})())
+        .catch(error => { setData([]); console.log(error) })
+      } else {
+        data.length > 0 && setData([])
+      }
+      return setTimeout(func, 1000)
     }
-  }, [chat_id, myUser, otherUser, data])
+    const interval = setTimeout(func, 1000)
+    return () => clearInterval(interval)
+  }, [])
 
   return (<>
     { data.length > 0
