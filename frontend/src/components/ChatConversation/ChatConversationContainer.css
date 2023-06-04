@@ -24,12 +24,12 @@
   padding-right: 1em;
 }
 
-.conversation-container::after {
+.chat-convo-container::after {
   content: " ";
   position: absolute;
   width: 100%;
   height: 3em;
-  background-image: linear-gradient(#b3b3f130, #1107382c);
+  background-image: linear-gradient(#b3b3f149, #1107381c, #00000000);
   top: 0;
   left: 0;
   z-index: 1;

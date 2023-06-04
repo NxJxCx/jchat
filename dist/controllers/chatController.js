@@ -330,6 +330,7 @@ const sendChat = async (req, res, next) => {
     await chat.save();
     return res.json({
       success: {
+        chatid: chat._id,
         message: 'Successfully Sent Chat!'
       }
     });

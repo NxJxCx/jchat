@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
-import { NavLink, useLoaderData, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, useLoaderData, Outlet } from 'react-router-dom'
 import * as Icons from 'react-bootstrap-icons'
 import './Chat.css'
 import ChatContactGroup from '../ChatContact/ChatContactGroup'
+import Swal from 'sweetalert2'
 
-import { getUsersBySearch, getUserById, getChatSearchData, getChatData, updateOnlineStatus, getChatConversation } from '../../api'
+import { getUsersBySearch, getUserById, getChatSearchData, getChatData, updateOnlineStatus, getChatConversation, API_URL } from '../../api'
 
 export default function Chat() {
   const { logininfo } = useLoaderData()
-  const navigate = useNavigate()
   const [myUser, setMyUser] = useState(null)
   const [userContacts, setUserContacts] = useState({})
   const [initContactIndex, setInitContactIndex] = useState(-1)
@@ -58,7 +58,7 @@ export default function Chat() {
         .then(async (success) => {
           if (success.data.length > 0) {
             if (window.location.pathname === '/' || (window.location.pathname.substring(0, 6) === '/chat/' && window.location.pathname.substring(6, 13) === 'message/')) {
-              navigate('/chat/' + success.data[0]._id.toString())
+              window.location.href = '/chat/' + success.data[0]._id.toString()
             } else {
               success.data.forEach((v, i)=> {
                 if (v._id.toString() === window.location.pathname.substring(6, 24+6)) {
@@ -80,24 +80,29 @@ export default function Chat() {
         .catch(error => { setUserContacts({ chats: [], users: [] }); console.log(error) })
       }
     }
-  }, [searchName, logininfo.userid]);
+  }, [searchName, logininfo, window.location.pathname]);
 
   const handleSelectChatContact = ({ chatid, username, name, aboutme, isonline, index }) => {
     if (chatid) {
       setSearchName('')
-      navigate('/chat/' + chatid)
+      window.location.href = '/chat/' + chatid
     } else {
       if (username) {
         setSearchName('')
-        navigate('/chat/message/' + username)
+        window.location.href = '/chat/message/' + username
       }
     }
+  }
+
+  const handleSubmit = (ev) => {
+    ev.preventDefault()
+    ev.stopPropagation()
   }
 
   return (<>
     <div className="chat-background"></div>
     <div className="container text-white shadow-lg">
-      <div className="row vh-100">
+      <div className="row vh-100" style={{maxHeight: '100vh'}}>
         <div className="col-auto border-start border-top border-bottom rounded-start-4 p-0 chat-col-menu">
           <div className="container-fluid overflow-none">
             <div className="row flex-column">
@@ -113,6 +118,58 @@ export default function Chat() {
                   <div className="btn-group dropend">
                     <Icons.GearFill type="button" className="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" color="#8992a3de" />
                     <ul className="dropdown-menu">
+                      <li className="dropdown-item">
+                        <div type="button" onClick={() => {
+                          Swal.fire({
+                            html: `<form action="${API_URL.update(myUser ? myUser._id.toString() : logininfo.userid)}" enctype="application/json" method="put" class="d-flex flex-column justify-content-center align-items-center" id="frm-update" method="post">
+                            <h3> Update Profile </h3>
+                            <input type="hidden" name="userid" value="${myUser ? myUser._id.toString() : logininfo.userid}" />
+                            <div class="input-group mb-2">
+                              <span class="input-group-text">First Name:</span>
+                              <input type="text" name="firstname" class="form-control" placeholder="First Name" value="${myUser ? myUser.firstname : ''}" required/>
+                            </div>
+                            <div class="input-group mb-2">
+                              <span class="input-group-text">Middle Name:</span>
+                              <input type="text" name="middlename" class="form-control" placeholder="Middle Name" value="${myUser ? myUser.middlename : ''}" />
+                            </div>
+                            <div class="input-group mb-2">
+                              <span class="input-group-text">Last Name:</span>
+                              <input type="text" name="lastname" class="form-control" placeholder="Last Name" value="${myUser ? myUser.lastname : ''}" required/>
+                            </div>
+                            <div class="input-group mb-2">
+                              <span class="input-group-text">Birthday:</span>
+                              <input type="date" name="birthday" class="form-control" placeholder="Birthday" required />
+                            </div>
+                            <div class="input-group mb-2">
+                              <span class="input-group-text">Gender:</span>
+                              <select name="gender" class="form-control" required>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                              </select>
+                            </div>
+                            <div class="input-group mb-2">
+                              <span class="input-group-text">Civil Status:</span>
+                              <select name="gender" class="form-control" required>
+                                <option value="single">Single</option>
+                                <option value="married">Married</option>
+                                <option value="widowed">Widowed</option>
+                              </select>
+                            </div>
+                            <div class="input-group mb-2">
+                              <span class="input-group-text">Address:</span>
+                              <input type="text" name="address" class="form-control" placeholder="Address" value="${myUser ? myUser.address : ''}" required/>
+                            </div>
+                            <div class="input-group mb-2">
+                              <span class="input-group-text">About Me:</span>
+                              <input type="text" name="aboutme" class="form-control" placeholder="About Me" value="${myUser ? myUser.aboutme : ''}" required/>
+                            </div>
+                            <div class="form-group mb-2">
+                              <button type="submit" class="btn btn-warning">Save</button>
+                            </div>
+                            </form>`
+                          })
+                        }}>Update Account</div>
+                      </li>
                       <li className="dropdown-item">
                         <NavLink className="nav-link" to="/logout">Logout</NavLink>
                       </li>

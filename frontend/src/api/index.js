@@ -81,13 +81,19 @@ export const sendChatMessage = ({chatid, from_userid, to_username, message}) => 
 
 export const sendChatPhoto = ({chatid, from_userid, to_username, photos=[]}) => axios.post(API_URL.sendChat, { chatid, from_userid, to_username, photos })
 
-export const uploadImage = ({ formData, userid, file, filename, forProfile=false, onUploadProgress=(ev)=>{ console.log("EV", ev) } }) => {
+export const uploadImage = ({ formData, userid, file, files, filename, forProfile=false, onUploadProgress=(ev)=>{ console.log("EV", ev) } }) => {
     const data = formData ? formData : new FormData()
     if (!formData) {
         if (userid) { 
             data.append('userid', userid)
         }
-        data.append('photo', file, filename)
+        if (files) {
+            files.forEach(v => {
+                data.append('photo', v)
+            })
+        } else {
+            data.append('photo', file, filename)
+        }
         data.append('forProfile', !!forProfile)
     } else {
         data.delete('forProfile')

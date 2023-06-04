@@ -1,14 +1,24 @@
 import { useState, useEffect } from 'react'
 import ChatMessageContent from "./ChatMessageContent";
 import { getChatData, getChatConversation, getUserById, getUserByUsername } from '../../api';
+import Swal from 'sweetalert2'
 
 export default function ChatConversation({ chatid, userid, username }) {
   const [chat_id, setChatId] = useState(null)
   const [data, setData] = useState([])
   const [myUser, setMyUser] = useState(null)
   const [otherUser, setOtherUser] = useState(null)
+  // const [messagesEnd, setMessagesEnd] = useState()
+
   const handleOpenPhotos = (photo, i, photos) => {
     console.log(photo, i, photos)
+    console.log(photos)
+    Swal.fire({
+      width: '100%',
+      height: '100%',
+      background: '#030821be',
+      html:`<img src="http://${window.location.hostname}${process.env.NODE_ENV === 'development' ? ':3080' : ''}${photo}" class="img-thumbnail img-fluid" />`
+    })
   }
 
   useEffect(() => {
@@ -48,9 +58,8 @@ export default function ChatConversation({ chatid, userid, username }) {
     if (chat_id === null && chatid && userid && myUser !== null && otherUser !== null) {
       getChatData(userid)
       .then(resp => new Promise(res=>res(resp.data)))
-      .then(({success, error}) => new Promise((res, rej)=>
-        success
-        ? res(success.data.filter(v => v._id.toString() === chatid).length === 0)
+      .then(({success, error}) => new Promise((res, rej)=> success
+        ? res(success.data.filter(v => v._id.toString() === chatid).length === 1)
         : rej(error)
       ))
       .then(isValid => isValid ? setChatId(chatid) : setChatId(null))
@@ -70,7 +79,6 @@ export default function ChatConversation({ chatid, userid, username }) {
         }
       }))
       .then(cid => cid.length === 24 && setChatId(cid))
-      .catch(error => { setChatId(null); console.log(error) })
     }
   }, [chat_id, chatid, userid, myUser, otherUser])
 
@@ -80,40 +88,58 @@ export default function ChatConversation({ chatid, userid, username }) {
         // get the chat conversation data
         getChatConversation(chat_id, myUser._id.toString())
         .then(resp => new Promise(res=>res(resp.data)))
-        .then(({success}) => success && chat_id === success.chatid.toString()
-          ? setData(success.data.map((v, i, dt) => {
-            const isphotosnext = i < dt.length - 1 ? dt[i+1].photos.length > 0 : false
-            const name = v.senderid.toString() === myUser._id.toString() ? `${myUser.firstname} ${myUser.lastname}` : (v.senderid.toString() === otherUser._id.toString() ? `${otherUser.firstname} ${otherUser.lastname}` : '')
-            const profilephoto = v.senderid.toString() === myUser._id.toString() ? myUser.photo : (v.senderid.toString() === otherUser._id.toString() ? otherUser.photo : '')
-            const previous = i < dt.length - 1 ? v.senderid.toString() === dt[i+1].senderid.toString() && (v.photos.length === 0 || !isphotosnext) : false
-            const right = data[i].senderid.toString() === myUser._id.toString()
-            return {
-              name,
-              profilephoto,
-              previous,
-              right,
-              message: dt[i].message,
-              time: new Date(dt[i].timestamp),
-              photos: [...dt[i].photos],
-              onClick: handleOpenPhotos,
-            }
-          }))
-          : (function(){throw new Error('Invalid chat data')})())
+        .then(({success}) => {
+          if (success && chat_id === success.chatid.toString()) {
+            const newdata = success.data.reverse().map((v, i, dt) => {
+                const isphotosnext = i < dt.length - 1 ? dt[i+1].photos.length > 0 : false
+                const name = v.senderid.toString() === myUser._id.toString() ? `${myUser.firstname} ${myUser.lastname}` : (v.senderid.toString() === otherUser._id.toString() ? `${otherUser.firstname} ${otherUser.lastname}` : '')
+                const profilephoto = v.senderid.toString() === myUser._id.toString() ? `http://${window.location.hostname}${process.env.NODE_ENV === 'development' ? ':3080' : ''}${myUser.photo}` : (v.senderid.toString() === otherUser._id.toString() ? `http://${window.location.hostname}${process.env.NODE_ENV === 'development' ? ':3080' : ''}${otherUser.photo}` : '')
+                const previous = i < dt.length - 1 ? v.senderid.toString() === dt[i+1].senderid.toString() && (v.photos.length === 0 || !isphotosnext) : false
+                const right = v.senderid.toString() === myUser._id.toString()
+                return {
+                  name,
+                  profilephoto,
+                  previous,
+                  right,
+                  message: v.message,
+                  time: new Date(v.timestamp),
+                  photos: [...v.photos],
+                  onClick: handleOpenPhotos,
+                }
+              }).reverse()
+              if (newdata.length > data.length) {
+                console.log("?")
+                setData(newdata)
+                // setTimeout(() => 
+                // scrollToBottom(), 100)
+              }
+          } else {
+            throw new Error('Invalid chat data')
+          }
+        })
         .catch(error => { setData([]); console.log(error) })
       } else {
         data.length > 0 && setData([])
       }
-      return setTimeout(func, 1000)
+      // return setTimeout(func, 2000)
     }
-    const interval = setTimeout(func, 1000)
+    const interval = setInterval(func, 1000)
+    func()
+    // clearInterval(interval)
     return () => clearInterval(interval)
-  }, [])
+  }, [chat_id, data.length])
+
+  // const scrollToBottom = () => {
+    // messagesEnd.scrollIntoView({ behavior: "smooth", block: "end"});
+  // }  
 
   return (<>
+  {/* <div className="container-fluid overflow-auto d-flex flex-column-reverse" style={{minHeight: '100%', float:"left", clear: "both" }} ref={setMessagesEnd}> */}
     { data.length > 0
-      ? data.map((v, i) => <ChatMessageContent key={`convo_${chat_id}_${i}`} {...v} />).reverse()
+      ? data.map((v, i) => <ChatMessageContent key={`convo_${chat_id}_${i}`} {...v} />)
       : <div className="chat-conversation">
           <div className="no-conversation">No messages. Send a message to start chatting.</div>
         </div> }
+  {/* </div> */}
   </>);
 }

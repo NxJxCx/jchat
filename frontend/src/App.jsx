@@ -3,7 +3,7 @@ import Swal from 'sweetalert2'
 import Login from './components/Login/Login'
 import Signup from './components/Signup/Signup'
 import Chat from './components/Chat/Chat'
-import { loginUser, uploadImage, signupUser, getUserById, getUserByUsername, getChatByUsername, getChatConversation } from './api'
+import { loginUser, uploadImage, signupUser, getUserById, getUserByUsername, getChatByUsername, getChatConversation, sendChatMessage } from './api'
 import TestUpload from './components/TestUpload'
 import ChatConversationContainer from './components/ChatConversation/ChatConversationContainer'
 
@@ -148,9 +148,18 @@ const router = createBrowserRouter([
           return redirect('/')
         },
         action: async ({ request }) => {
-          const fm = await request.formData()
-          console.log(Object.fromEntries(fm))
-          return {}
+          try {
+            const fm = await request.formData()
+            const data = Object.fromEntries(fm)
+            if (data.message.length > 0) {
+              const resp = await sendChatMessage(data)
+              const { success } = resp.data
+              return { success }
+            }
+          } catch (error) {
+            return { error }
+          }
+          return { error: 'Invalid Message' }
         }
       },
       {
@@ -191,8 +200,18 @@ const router = createBrowserRouter([
           return redirect('/')
         },
         action: async ({ request }) => {
-          const fm = await request.formData()
-          return {...Object.fromEntries(fm)}
+          try {
+            const fm = await request.formData()
+            const data = Object.fromEntries(fm)
+            if (data.message.length > 0) {
+              const resp = await sendChatMessage(data)
+              const { success } = resp.data
+              return redirect('/chat/' + success.chatid)
+            }
+          } catch (error) {
+            return { error }
+          }
+          return { error: 'Invalid Message' }
         }
       }
     ]

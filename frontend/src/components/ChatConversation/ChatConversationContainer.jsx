@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
-import { useLoaderData, useActionData, Form, useNavigate } from 'react-router-dom'
+import { useLoaderData, useActionData, Form, useNavigation } from 'react-router-dom'
 import * as Icons from 'react-bootstrap-icons'
 import ChatConversation from './ChatConversation'
 import './ChatConversationContainer.css'
-import { sendChatPhoto, sendChatMessage, uploadImage } from '../../api'
+import { sendChatPhoto, uploadImage } from '../../api'
 
 export default function ChatConversationContainer() {
-  const navigate = useNavigate()
+  const navigation = useNavigation()
   const { chatid, userid, otherid, username,
           firstname, middlename, lastname,
           birthday, gender, civilstatus,
@@ -16,7 +16,7 @@ export default function ChatConversationContainer() {
 
   const [photoUploader, setPhotoUploader] = useState()
   const [submiForm, setSubmitForm] = useState()
-
+  const [messageContent, setMessageContent] = useState('')
   const [isOnline, setIsOnline] = useState(false)
   const [selectedConversation, setUserConversation] = useState({
     chatid,
@@ -45,10 +45,16 @@ export default function ChatConversationContainer() {
     }
   }, [isOnline, dateonline, chatid, userid, username, selectedConversation.chatid, selectedConversation.userid, selectedConversation.username])
   
+  useEffect(() => {
+    if (actionData && actionData.success && navigation.state === 'submitting') {
+      setMessageContent('')
+    }
+  }, [messageContent, actionData])
+
   const handleUploader = (e) => {
     uploadImage({
-      file: e.target.files[0],
-      filename: e.target.value,
+      files: [...e.target.files],
+      forProfile: false,
       userid,
       onUploadProgress: () => {
         if (submiForm) {
@@ -109,21 +115,21 @@ export default function ChatConversationContainer() {
           <Icons.PersonAdd />
         </div>
       </div>
-      <div className="chat-convo-container">
-        <div className="conversation-container">
+      <div className="chat-convo-container" >
+        <div className="conversation-container d-flex flex-column-reverse" >
           <ChatConversation {...selectedConversation} />
         </div>
         <form encType="multipart/form-data">
           <input type="file" onChange={handleUploader} accept="image/png, image/gif, image/jpeg" multiple name="photos" className="visually-hidden" ref={setPhotoUploader} />
         </form>
-        <Form method="post" ref={setSubmitForm} className="send-message-container">
+        <Form method="post" ref={setSubmitForm} onSubmit={() => { setMessageContent('')}}className="send-message-container">
           <button type="button" onClick={() => photoUploader.click()} className="btn btn-outline-none text-white d-none d-md-block d-lg-block d-xl-block d-xxl-block" style={{fontSize: '5mm'}}>
             <Icons.Images />
           </button>
           <input type="hidden" name="chatid" value={chatid} />
           <input type="hidden" name="from_userid" value={userid} />
           <input type="hidden" name="to_username" value={username} />
-          <textarea type="text" name="message" className="form-control mx-3 mt-3 rounded-4 text-white" placeholder='Type your Message...' />
+          <textarea type="text" name="message" value={messageContent} onChange={(e) => setMessageContent(e.target.value)}className="form-control mx-3 mt-3 rounded-4 text-white" placeholder='Type your Message...' />
           <button type="submit" className="btn btn-outline-none text-warning">
             <Icons.Send style={{transform: 'rotate(45deg)', fontSize: '7mm'}} />
           </button>

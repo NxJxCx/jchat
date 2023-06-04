@@ -228,7 +228,7 @@ export const sendChat = async (req, res, next) => {
     }
     // then save to database
     await chat.save()
-    return res.json({ success: { message: 'Successfully Sent Chat!' }})
+    return res.json({ success: { chatid: chat._id, message: 'Successfully Sent Chat!' }})
   } catch (error) {
     next(error)
   }
