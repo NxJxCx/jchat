@@ -3,7 +3,6 @@ A messenger chatting app.
 Features include:
 1. Login
 2. Sign Up
-3. Update Profile
 3. Messenger Chat
 4. Upload Photos
 5. Search Users
