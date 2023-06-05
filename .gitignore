@@ -65,3 +65,5 @@ tmp
 
 # public upload directory
 public/*-photo/
+
+/.vscode
