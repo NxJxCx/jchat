@@ -17,7 +17,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 const app = (0, _express.default)();
 // database setup
-const mongoUri = process && process.env && process.env.MONGODB_URI || "mongodb+srv://group9:pasarnami@cluster0.x1iusak.mongodb.net/jchat?retryWrites=true&w=majority" || 'mongodb://127.0.0.1:27017/jchat';
+const mongoUri = process && process.env && process.env.MONGODB_URI || "mongodb+srv://lenixnjc:njc10Lenix@cluster0.ueabo.mongodb.net/jchat?retryWrites=true&w=majority" || 'mongodb://127.0.0.1:27017/jchat';
 const mongooseConfigs = {
   useNewUrlParser: true,
   useUnifiedTopology: true
