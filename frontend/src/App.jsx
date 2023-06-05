@@ -4,7 +4,6 @@ import Login from './components/Login/Login'
 import Signup from './components/Signup/Signup'
 import Chat from './components/Chat/Chat'
 import { loginUser, uploadImage, signupUser, getUserById, getUserByUsername, getChatByUsername, getChatConversation, sendChatMessage } from './api'
-import TestUpload from './components/TestUpload'
 import ChatConversationContainer from './components/ChatConversation/ChatConversationContainer'
 
 const router = createBrowserRouter([
@@ -216,56 +215,6 @@ const router = createBrowserRouter([
       }
     ]
   },
-  {
-    path: '/testupload',
-    element: <TestUpload />,
-    action: async ({request}) => {
-      const progressbar = document.querySelector('progress#file')
-      progressbar.value = 0
-      progressbar.innerHTML = " 0% "
-      progressbar.classList.remove('d-none')
-      const formData = await request.formData()
-      try {
-        const response = await uploadImage({
-          formData,
-          forProfile: formData.get('forProfile') === 'profile',
-          onUploadProgress: (e) => {
-            progressbar.max = e.total
-            progressbar.value = e.loaded
-            progressbar.innerHTML = ` ${Math.floor(e.progress * 100)}% `
-          }
-        })
-        const result = response.data;
-        if (result.success) {
-          console.log(result.success)
-          Swal.fire({
-            icon: 'success',
-            title: 'Success',
-            text: result.success.message,
-            timer: 1000,
-          }).then(() => {
-            redirect('/')
-          })
-        } else if (result.error) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: result.error.message,
-            timer: 1000,
-          })
-        }
-      } catch (error) {
-        console.log(error)
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Failed to upload file!',
-          footer: `<strong class="text-danger">${error.message}</strong>`
-        })
-      }
-      return {}
-    }
-  }
 ])
 
 export default function App() {
